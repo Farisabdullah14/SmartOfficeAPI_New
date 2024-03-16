@@ -36,8 +36,6 @@ class TransaksiLampuController extends Controller
         }
 
         // event(new LampuStatusChanged($lampu));
-
-
         return response()->json([
             'message' => 'success',
             'data' => $lampu,
@@ -120,7 +118,6 @@ class TransaksiLampuController extends Controller
     
         // Broadcast perubahan status lampu ke channel yang sesuai
         event(new LampuStatusChanged($latestTransaction->id_Transaksi_lampus,$latestTransaction->id_lampu, $latestTransaction->Status));
-    
         $selectedColumns = [
             'id_Transaksi_lampu',
             'id_lampu',
@@ -153,13 +150,9 @@ class TransaksiLampuController extends Controller
         if (!$lamp_) {
             return response()->json(['message' => 'Lamp not found'], 404);
         }
-
+        
         $lampu->save();
-
-
         $status = 'on'; // Set the desired status, assuming 'on' for this example
-       
-
         event(new LampuStatusChanged($lampu->id_transaksilampu,$lamp_id, $status));
 
         switch ($kode_hardware) {
@@ -197,10 +190,10 @@ class TransaksiLampuController extends Controller
             ], 404);
         }
 
-        return response()->json([
-            'message' => 'success',
-            'data' => $lampu,
-        ]);
+        // return response()->json([
+        //     'message' => 'success',
+        //     'data' => $lampu,
+        // ]);
     }
 
 
@@ -221,7 +214,6 @@ class TransaksiLampuController extends Controller
         $id_Transaksi_lampu = $request->input('id_Transaksi_lampu');
     
         $lampu = TransaksiLampuModel::where('id_Transaksi_lampu', $id_Transaksi_lampu)->first();
-    
         if (!$lampu) {
             return response()->json(['error' => 'Record not found'], 404);
         }
@@ -237,8 +229,6 @@ class TransaksiLampuController extends Controller
             $lamp_id = $lampu->id_lampu;
           //  dd($lampu);
 
-        
-        
           event(new LampuStatusChanged($id_Transaksi_lampu,$lamp_id, $status));
         // broadcast(new LampuStatusChanged($lampu->id_transaksilampu,$lamp_id, $status))->toOthers();
 

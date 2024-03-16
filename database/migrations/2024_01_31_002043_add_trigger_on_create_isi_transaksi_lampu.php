@@ -25,7 +25,8 @@ class AddTriggerOnCreateIsiTransaksiLampu extends Migration
             SET NEW.Start_waktu = IFNULL(NEW.Start_waktu, CURRENT_TIME());
             SET NEW.End_waktu = IFNULL(NEW.End_waktu, "00:00:00");
             SET NEW.Date = IFNULL(NEW.Date, CURRENT_TIMESTAMP());
-        END');    }
+        END');    
+    }
 
     /**
      * Reverse the migrations.
