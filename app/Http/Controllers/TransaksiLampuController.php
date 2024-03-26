@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http; // Add this line for the Http class
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Redis; // Import the Redis facade
-
+use App\Models\HistoryTransaksiLampu;
 
 class TransaksiLampuController extends Controller
 {
@@ -71,9 +71,6 @@ class TransaksiLampuController extends Controller
             if (!is_string($id_lampu)) {
         return response()->json(['message' => 'Parameter id_lampu tidak valid'], 400);
     }
-
-
-
   $lampu = TransaksiLampuModel::where('id_lampu', $id_lampu)
   ->where('Status', 'on')
 //  ->where('id_Transaksi_lampu', $id_Transaksi_lampu)
@@ -93,7 +90,9 @@ class TransaksiLampuController extends Controller
         'Watt_lampu',
         'Kode_hardware',
         'Biaya_lampu',
+        'id_ruangan',
         'Status',
+        'id_pengguna',
     ];
 
     $lampuData = $lampu->only($selectedColumns);
@@ -125,6 +124,7 @@ class TransaksiLampuController extends Controller
             'Kode_hardware',
             'Biaya_lampu',
             'Status',
+            'id_pengguna',
         ];
         $lampuData = $latestTransaction->only($selectedColumns);
 
@@ -137,23 +137,24 @@ class TransaksiLampuController extends Controller
 
     public function createTransaksiLampu(Request $request)
     {
-        $lampu = new TransaksiLampuModel;
-        $lampu->id_lampu = $request->input('id_lampu');
-        $lampu->Watt_lampu = $request->input('Watt_lampu');
-        $lampu->id_ruangan = $request->input('id_ruangan');
+        $Transaskilampu = new TransaksiLampuModel;
+        $Transaskilampu->id_lampu = $request->input('id_lampu');
+        $Transaskilampu->Watt_lampu = $request->input('Watt_lampu');
+        $Transaskilampu->id_ruangan = $request->input('id_ruangan');
+        $Transaskilampu->id_pengguna = $request->input('id_pengguna');
         $kode_hardware = $request->input('Kode_hardware');
-        $lampu->kode_hardware = $kode_hardware;
+        $Transaskilampu->kode_hardware = $kode_hardware;
 
-        $lamp_id = $lampu->id_lampu; // Retrieve the ID from the saved lampu model
+        $lamp_id = $Transaskilampu->id_lampu; // Retrieve the ID from the saved lampu model
         $lamp_ = LampuModel::where('id_lampu', $lamp_id)->first();
 
         if (!$lamp_) {
             return response()->json(['message' => 'Lamp not found'], 404);
         }
         
-        $lampu->save();
+        $Transaskilampu->save();
         $status = 'on'; // Set the desired status, assuming 'on' for this example
-        event(new LampuStatusChanged($lampu->id_transaksilampu,$lamp_id, $status));
+        event(new LampuStatusChanged($Transaskilampu->id_transaksilampu,$lamp_id, $status));
 
         switch ($kode_hardware) {
             case "HDR_002":
@@ -161,34 +162,34 @@ class TransaksiLampuController extends Controller
                 //  $status = 'on';
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
 
-                $endpoint = "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
+                $endpoint ="0 ada" ;// "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
                 // $endpoint = "http://192.168.170.216:8383/api/on/{$lamp_id}";
-                $lampu->save();
+                $Transaskilampu->save();
+
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
                 break;
              case "HDR_001":
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
-                $endpoint = "http://192.168.32.76:8383/api/{$status}/{$lamp_id}";
-                  $lampu->save();
+                $endpoint = "0 ada" ; //"http://192.168.32.76:8383/api/{$status}/{$lamp_id}";
+                  $Transaskilampu->save();
              break;
             default:
                 return response()->json(['message' => 'Invalid Kode_hardware'], 400);
         }
 
-        $response = Http::get($endpoint);
-        //         logger($response->body());
-        // dd($response->body());
-        if ($response->successful()) {
-            return response()->json(['message' => 'Lamp control successful']);
-        } else {
-            return response()->json(['error' => 'Failed to control lamp'], $response->status());
-        }
-
-        if (!$lampu) {
-            return response()->json([
-                'message' => 'Data not found',
-            ], 404);
-        }
+        // $response = Http::get($endpoint);
+        // //         logger($response->body());
+        // // dd($response->body());
+        // if ($response->successful()) {
+        //     return response()->json(['message' => 'Lamp control successful']);
+        // } else {
+        //     return response()->json(['error' => 'Failed to control lamp'], $response->status());
+        // }
+        // if (!$Transaskilampu) {
+        //     return response()->json([
+        //         'message' => 'Data not found',
+        //     ], 404);
+        // }
 
         // return response()->json([
         //     'message' => 'success',
@@ -196,17 +197,6 @@ class TransaksiLampuController extends Controller
         // ]);
     }
 
-
-
-
-
-
-
-    public function historyData($lampu){
-        
-
-
-    }
 
 
     public function updateTransaksiLampu(Request $request)
@@ -221,11 +211,10 @@ class TransaksiLampuController extends Controller
         try {
             $status = $request->input('Status');
             $kode_hardware = $request->input('Kode_hardware');
-    
+            $lampu->id_pengguna = $request->input('id_pengguna');
             $lampu->Status = $status;
             $lampu->Kode_hardware = $kode_hardware;
             $lampu->save();
-    
             $lamp_id = $lampu->id_lampu;
           //  dd($lampu);
 

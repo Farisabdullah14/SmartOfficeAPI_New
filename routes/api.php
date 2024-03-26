@@ -30,9 +30,17 @@ Route::get('/cobaAmbilget/{id_lampu}', [\App\Http\Controllers\TransaksiLampuCont
 Route::get('/getLatestTransaction/{id_lampu}', [\App\Http\Controllers\TransaksiLampuController::class, 'getLatestTransactionByLampId']);
 
 Route::get('/ALLDataRuangan', [\App\Http\Controllers\RuanganController::class, 'ALLDataRuangan']);
-Route::get('/isiRuangan/{idRuangan}', [\App\Http\Controllers\RuanganController::class, 'getDataByIdRuangan']);
 Route::put('/updateTransaksiLampu', [\App\Http\Controllers\TransaksiLampuController::class, 'updateTransaksiLampu']);
 
+
+Route::get('/isiRuangan/{idRuangan}', [\App\Http\Controllers\RuanganController::class, 'getDataByIdRuangan']);
+Route::get('/getjumlahDV/{idRuangan}', [\App\Http\Controllers\RuanganController::class, 'getjumlahDV']);
+
+
+Route::get('/ambilDataDanGabungkan/{idRuangan}', [\App\Http\Controllers\RuanganController::class, 'ambilDataDanGabungkan']);
+
+
+// Route::get('/getNumberOfDevicesByRuanganId/{idRuangan}', [\App\Http\Controllers\RuanganController::class, 'getNumberOfDevicesByRuanganId']);
 
 // http://192.168.100.229:8181/api/getLatestTransaction/{id_lampu}
 
@@ -67,3 +75,7 @@ Route::post('/createTransaksiAC', [\App\Http\Controllers\TransaksiACController::
 Route::match(['put', 'post'], '/updateTransaksiAC_Kecepatan_kipas', [\App\Http\Controllers\TransaksiACController::class, 'updateTransaksiAC_Kecepatan_kipas']);
 
 // Route::post('/createTransaksiLampu', [\App\Http\Controllers\LampuController::class, 'createTransaksiLampu']);
+
+
+
+

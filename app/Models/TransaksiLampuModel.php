@@ -19,12 +19,14 @@ class TransaksiLampuModel extends Model
         'Biaya_lampu',
         'Start_waktu',
         'End_waktu',
-        'Date',
         'id_ruangan',
+        'name',
         'Status',
+        'id_pengguna'
     ];
 
 
     // Specify that 'id' is a bigint primary key
     protected $primaryKey = 'id';
+    
 }

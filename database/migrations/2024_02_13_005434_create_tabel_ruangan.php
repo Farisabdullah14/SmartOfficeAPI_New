@@ -15,7 +15,7 @@ class CreateTabelRuangan extends Migration
     {
         Schema::create('ruangan', function (Blueprint $table) {
             $table->id();
-            $table->string('id_ruangan');
+            $table->string('id_ruangan')->unique();
             $table->string('nama_ruangan');
             $table->string('status');
             $table->timestamps();

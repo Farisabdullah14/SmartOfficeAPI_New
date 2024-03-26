@@ -16,12 +16,18 @@ class CreateLampuTable extends Migration
         Schema::create('lampu', function (Blueprint $table) {
 
             $table->id();
-            $table->string('id_lampu');
+            $table->string('id_lampu')->unique();
             $table->string('jenis_lampu');
             $table->integer('watt_lampu');     
             $table->string('Kode_hardware');     
             $table->string('id_ruangan');
+            // $table->foreign('id_ruangan')->references('id_ruangan')->on('ruangan');
+
             $table->timestamps();
+
+
+            $table->index('id_lampu');
+
         });
     }
 

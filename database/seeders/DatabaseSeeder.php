@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-
+// use RuanganSeeder;
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -13,6 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
-    }
+    //  $this->call(RuanganSeeder::class);
+    $this->call([
+        LampuSeeder::class,
+        RuanganSeeder::class,
+    ]);
+
+}
 }
