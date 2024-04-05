@@ -5,12 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TransaksiAcModel extends Model
+class HistoryTransaksiAC extends Model
 {
-    protected $table = 'transaksi_ac';
+    use HasFactory;
+
+    protected $table = 'history_transaksi_ac';
+
+    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'id',
+        'id_history_transaksi_AC',
         'id_Transaksi_AC',
         'id_ruangan',
         'id_AC',
@@ -30,5 +34,9 @@ class TransaksiAcModel extends Model
         'Waktu_Penggunaan',
         'Status',
     ];
+
+    protected $casts = [
+        'Start_waktu' => 'datetime',
+        'End_waktu' => 'datetime',
+    ];
 }
-    //   

@@ -30,6 +30,8 @@ class AddTriggerIdAutomatisCreateTransaksiAc extends Migration
             END IF;
 
             SET NEW.id_Transaksi_AC = CONCAT("TRS_", LPAD(new_id, 3, "0"));
+
+            SET NEW.Waktu_Penggunaan="00:00:00";
         END;
     ');    }
 

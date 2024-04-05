@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTransaksiAcTable extends Migration
+class HistoryTransaksiAC extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,9 @@ class CreateTransaksiAcTable extends Migration
      */
     public function up()
     {
-        Schema::create('transaksi_ac', function (Blueprint $table) {
+        Schema::create('history_transaksi_AC', function (Blueprint $table) {
             $table->id();
+            $table->string('id_history_transaksi_AC');
             $table->string('id_Transaksi_AC');
             $table->string('id_ruangan');
             $table->string('id_AC');
@@ -22,6 +23,7 @@ class CreateTransaksiAcTable extends Migration
             $table->enum('Kecepatan_kipas', ['Low', 'Medium', 'High'])->nullable();
             $table->string('Kode_hardware');
             $table->enum('Kecepatan_Pendingin', ['Low', 'Medium', 'High'])->nullable();
+
             $table->string('Mode')->nullable();
             $table->integer('Temp')->nullable();
             $table->time('Time')->nullable();
@@ -34,7 +36,7 @@ class CreateTransaksiAcTable extends Migration
             $table->Time('Waktu_Penggunaan'); // Kolom Waktu_Penggunaan (Tipe Data Time) Gabungkan Time dan Start_waktu menjadi satu kolom Waktu_Penggunaan. Hitung selisih End_waktu dan Start_waktu untuk mendapatkan durasi penggunaan AC dalam format Time.
             $table->string('Status')->nullable();
             $table->timestamps();
-        });
+        });    
     }
 
     /**
@@ -44,6 +46,6 @@ class CreateTransaksiAcTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('transaksi_ac');
+        Schema::dropIfExists('history_transaksi_AC');
     }
 }

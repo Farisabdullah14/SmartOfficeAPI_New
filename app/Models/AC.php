@@ -20,6 +20,7 @@ class AC extends Model
         'id_ruangan',
         'daya_va',
         'paard_kracht',
+        'Status',
     ];
 
         // // Definisikan hubungan dengan model Ruangan

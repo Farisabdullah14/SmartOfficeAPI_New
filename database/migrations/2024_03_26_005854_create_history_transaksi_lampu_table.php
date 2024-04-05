@@ -26,7 +26,7 @@ class CreateHistoryTransaksiLampuTable extends Migration
             $table->string('id_ruangan');
             $table->unsignedBigInteger('id_pengguna');
             $table->string('status');
-            
+
             $table->timestamps();
         });
     }

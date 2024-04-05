@@ -65,8 +65,9 @@ Route::get('/TransaksiLampuShowAllData', [\App\Http\Controllers\TransaksiLampuCo
 
 
 Route::get('/ACgetPemanggilanOnData', [\App\Http\Controllers\TransaksiACController::class, 'getPemanggilanOn']);
-Route::get('/ACshowSelectedData', [\App\Http\Controllers\TransaksiACController::class, 'showAllData']);
+Route::get('/ACshowSelectedData', [\App\Http\Controllers\ACController::class, 'showAllData']);
 Route::get('/ACgetMaxIdTransaksiOnStatus', [\App\Http\Controllers\TransaksiACController::class, 'getMaxIdTransaksiOnStatus']);
+Route::get('/cobaAmbilgetAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'cobaAmbilgetAC']);
 Route::post('/createTransaksiAC', [\App\Http\Controllers\TransaksiACController::class, 'createTransaksiAC']);
 // Route::put('/updateTransaksiAC_Kecepatan_kipas', [\App\Http\Controllers\TransaksiACController::class, 'updateTransaksiAC_Kecepatan_kipas']);
 // Route::put('/updateTransaksiAC_Kecepatan_kipas', [\App\Http\Controllers\TransaksiACController::class, 'updateTransaksiAC_Kecepatan_kipas']);
@@ -74,8 +75,16 @@ Route::post('/createTransaksiAC', [\App\Http\Controllers\TransaksiACController::
 // Route::put('/updateTransaksiAC_Kecepatan_kipas', [\App\Http\Controllers\TransaksiACController::class, 'updateTransaksiAC_Kecepatan_kipas']);
 Route::match(['put', 'post'], '/updateTransaksiAC_Kecepatan_kipas', [\App\Http\Controllers\TransaksiACController::class, 'updateTransaksiAC_Kecepatan_kipas']);
 
+Route::get('/searchDataByIdAC/{idAC}', [\App\Http\Controllers\ACController::class, 'searchDataByIdAC']);
+
+Route::get('/searchByIdAC', [\App\Http\Controllers\ACController::class, 'showAllData']);
+
+
+
 // Route::post('/createTransaksiLampu', [\App\Http\Controllers\LampuController::class, 'createTransaksiLampu']);
 
+Route::get('/getDataTerbaruByIdAC/{AC_id}', [\App\Http\Controllers\HistoryTransaksiAcController::class, 'getDataTerbaruByIdAC']);
+Route::post('/getpergerakanac/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'getpergerakanac']);
 
 
 

@@ -22,6 +22,7 @@ class CreateLampuTable extends Migration
             $table->string('Kode_hardware');     
             $table->string('id_ruangan');
             // $table->foreign('id_ruangan')->references('id_ruangan')->on('ruangan');
+            $table->enum('Status', ['Aktif', 'Nonaktif', 'Rusak','Maintenance'])->nullable();
 
             $table->timestamps();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use App\Models\TransaksiLampuModel;
+use App\Models\TransaksiAcModel;
 
 use Illuminate\Http\Request;
 use App\Models\Ruangan;
@@ -61,14 +62,54 @@ class RuanganController extends Controller
 
 
 
-    public function ambilDataDanGabungkan(Request $request, $idRuangan)
+//     public function ambilDataDanGabungkan(Request $request, $idRuangan)
+// {
+//     $lampuData = DB::table('Lampu')
+//                 ->select('id_lampu', 'jenis_lampu', 'watt_lampu', 'Kode_hardware', 'id_ruangan')
+//                 ->where('id_ruangan', $idRuangan)
+//                 ->get();
+
+//     // Ambil data AC
+//     $acData = DB::table('ac')
+//                 ->select('id_AC', 'jenis_ac', 'watt_ac', 'daya_va', 'paard_kracht', 'Kode_hardware')
+//                 ->where('id_ruangan', $idRuangan)
+//                 ->get();
+
+//     // Ambil data transaksi lampu terbaru
+//     $latestTransaksiLampu = TransaksiLampuModel::where('id_ruangan', $idRuangan)
+//                                                 ->where('Status', 'on')
+//                                                 ->latest()
+//                                                 ->first();
+
+//     // Tambahkan id_pengguna dari transaksi lampu terbaru
+//     $id_pengguna_transaksi = $latestTransaksiLampu ? $latestTransaksiLampu->id_pengguna : null;
+
+//     // Tambahkan status dari lampu pada data lampu
+//     $lampuData = $lampuData->map(function($lampu) use ($latestTransaksiLampu, $id_pengguna_transaksi) {
+//         if ($latestTransaksiLampu && $lampu->id_lampu === $latestTransaksiLampu->id_lampu) {
+//             $lampu->status = $latestTransaksiLampu->Status;
+//             $lampu->id_pengguna = $id_pengguna_transaksi;
+//         } else {
+//             $lampu->status = 'Off';
+//             $lampu->id_pengguna = null;
+//         }
+//         return $lampu;
+//     });
+
+//     // Format data untuk respons JSON
+//     $mergedData = array_merge($lampuData->toArray(), $acData->toArray());
+//     return response()->json($mergedData);
+// }
+
+public function ambilDataDanGabungkan(Request $request, $idRuangan)
 {
+    // Ambil data lampu dari tabel Lampu
     $lampuData = DB::table('Lampu')
                 ->select('id_lampu', 'jenis_lampu', 'watt_lampu', 'Kode_hardware', 'id_ruangan')
                 ->where('id_ruangan', $idRuangan)
                 ->get();
 
-    // Ambil data AC
+    // Ambil data AC dari tabel AC
     $acData = DB::table('ac')
                 ->select('id_AC', 'jenis_ac', 'watt_ac', 'daya_va', 'paard_kracht', 'Kode_hardware')
                 ->where('id_ruangan', $idRuangan)
@@ -80,8 +121,17 @@ class RuanganController extends Controller
                                                 ->latest()
                                                 ->first();
 
+    // Ambil data transaksi AC terbaru
+    $latestTransaksiAC = TransaksiAcModel::where('id_ruangan', $idRuangan)
+                                                ->where('Status', 'on')
+                                                ->latest()
+                                                ->first();
+
     // Tambahkan id_pengguna dari transaksi lampu terbaru
     $id_pengguna_transaksi = $latestTransaksiLampu ? $latestTransaksiLampu->id_pengguna : null;
+
+    // Tambahkan id_pengguna dari transaksi AC terbaru
+    $id_pengguna_transaksi_AC = $latestTransaksiAC ? $latestTransaksiAC->id_pengguna : null;
 
     // Tambahkan status dari lampu pada data lampu
     $lampuData = $lampuData->map(function($lampu) use ($latestTransaksiLampu, $id_pengguna_transaksi) {
@@ -95,11 +145,24 @@ class RuanganController extends Controller
         return $lampu;
     });
 
-    // Format data untuk respons JSON
+    // Tambahkan status dari AC pada data AC
+    $acData = $acData->map(function($ac) use ($latestTransaksiAC, $id_pengguna_transaksi_AC) {
+        if ($latestTransaksiAC && $ac->id_AC === $latestTransaksiAC->id_AC) {
+            $ac->status = $latestTransaksiAC->Status;
+            $ac->id_pengguna = $id_pengguna_transaksi_AC;
+        } else {
+            $ac->status = 'Off';
+            $ac->id_pengguna = null;
+        }
+        return $ac;
+    });
+
+    // Gabungkan data lampu dan AC
     $mergedData = array_merge($lampuData->toArray(), $acData->toArray());
+
+    // Format data untuk respons JSON
     return response()->json($mergedData);
 }
-
 
 //     public function ambilDataDanGabungkan(Request $request, $idRuangan)
 // {

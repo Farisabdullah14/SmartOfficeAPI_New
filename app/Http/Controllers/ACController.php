@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -19,4 +18,18 @@ class ACController extends Controller
              $AC,
         );
      }
+
+      public function searchDataByIdAC($idAC)
+    {
+        $AC = AC::where('id_AC', $idAC)->get();
+        if ($AC->isEmpty()) {
+            return response()->json([
+                'message' => 'Data not found',
+            ], 404);
+        }
+
+        return response()->json($AC);
+    }
+     
+     
 }

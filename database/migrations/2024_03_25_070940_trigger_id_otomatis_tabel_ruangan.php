@@ -27,6 +27,7 @@ class TriggerIdOtomatisTabelRuangan extends Migration
                 SET next_id = IFNULL(next_id, 1);
                 
                 SET NEW.id_ruangan = CONCAT("RGN_", LPAD(next_id, 3, "0"));
+
             END
         ');
     }

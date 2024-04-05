@@ -22,6 +22,8 @@ class LampuSeeder extends Seeder
                 'watt_lampu' => 9,
                 'Kode_hardware' => 'HDR_001',
                 'id_ruangan' => 'RGN_001',
+                'status' => 'Aktif' // Perbaikan: tambahkan key 'status'
+
             ],
             [
                 'id_lampu' => 'LMP_002',
@@ -29,6 +31,7 @@ class LampuSeeder extends Seeder
                 'watt_lampu' => 18,
                 'Kode_hardware' => 'HDR_001',
                 'id_ruangan' => 'RGN_002',
+                'status' => 'Nonaktif' // Perbaikan: tambahkan key 'status'
             ],
             // Tambahkan data lainnya sesuai kebutuhan
         ];

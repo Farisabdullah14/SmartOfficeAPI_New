@@ -32,6 +32,9 @@ class AddTriggerCalculateBiayaAndSetEndWaktu extends Migration
             
             -- Calculate Biaya_lampu based on the formula: Biaya_lampu = Watt_lampu * (duration / 3600)
             SET NEW.Biaya_lampu = NEW.Watt_lampu * @duration / 3600;
+
+
+        
         END
         ');       
     }

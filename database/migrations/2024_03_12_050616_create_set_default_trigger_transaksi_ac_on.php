@@ -20,8 +20,7 @@ class CreateSetDefaultTriggerTransaksiAcOn extends Migration
             BEGIN
                 SET NEW.Biaya_AC = 0;
                 SET NEW.Start_waktu = CURRENT_TIME();
-                SET NEW.End_waktu = "00:00:00";
-                SET NEW.Date = CURRENT_DATE();
+                SET NEW.End_waktu = CURRENT_TIME();
                 SET NEW.Status = "On";
             END
         ');

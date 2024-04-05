@@ -43,7 +43,6 @@ class TransaksiLampuController extends Controller
     }
 
 
-    
     public function getMaxIdTransaksiOnStatus()
     {
         $status = 'On';
@@ -127,7 +126,6 @@ class TransaksiLampuController extends Controller
             'id_pengguna',
         ];
         $lampuData = $latestTransaction->only($selectedColumns);
-
         return response()->json(['latest_transaction' => $lampuData]);
     }
     
@@ -137,6 +135,7 @@ class TransaksiLampuController extends Controller
 
     public function createTransaksiLampu(Request $request)
     {
+        
         $Transaskilampu = new TransaksiLampuModel;
         $Transaskilampu->id_lampu = $request->input('id_lampu');
         $Transaskilampu->Watt_lampu = $request->input('Watt_lampu');

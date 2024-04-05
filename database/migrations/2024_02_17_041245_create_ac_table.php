@@ -22,6 +22,7 @@ class CreateAcTable extends Migration
             $table->string('id_ruangan');
             $table->string('daya_va');
             $table->string('paard_kracht');
+            $table->enum('Status', ['Aktif', 'Nonaktif', 'Rusak','Maintenance'])->nullable();
             $table->timestamps();
         });
     }

@@ -83,7 +83,7 @@ class CreateTriggersAndSetAutoIdHistory extends Migration
         BEGIN
             DECLARE next_id INT;
             SET next_id = (SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "history_transaksi_lampu");
-            SET NEW.id_history_transaksi_lampu = CONCAT("HTL_", LPAD(next_id, 3, "00"));
+            SET NEW.id_history_transaksi_lampu = CONCAT("HTL_", LPAD(next_id, 6, "0"));
         END;
     ');
     }
