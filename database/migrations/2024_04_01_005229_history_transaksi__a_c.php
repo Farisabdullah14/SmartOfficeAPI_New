@@ -31,7 +31,8 @@ class HistoryTransaksiAC extends Migration
             $table->decimal('Biaya_AC',10,2)->nullable();
             $table->dateTime('Start_waktu')->nullable();
             $table->dateTime('End_waktu')->nullable();
-            $table->decimal('Tarif_Listrik', 8, 2)->nullable(); // Misalnya tarif per kWh
+            $table->string('id_tarif_listrik')->nullable();
+            $table->decimal('tarif_per_kwh', 8, 2)->nullable(); // Misalnya tarif per kWh
             $table->unsignedBigInteger('id_pengguna'); // Menambahkan kolom id_pengguna
             $table->Time('Waktu_Penggunaan'); // Kolom Waktu_Penggunaan (Tipe Data Time) Gabungkan Time dan Start_waktu menjadi satu kolom Waktu_Penggunaan. Hitung selisih End_waktu dan Start_waktu untuk mendapatkan durasi penggunaan AC dalam format Time.
             $table->string('Status')->nullable();

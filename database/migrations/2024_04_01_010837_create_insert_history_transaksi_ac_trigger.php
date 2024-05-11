@@ -15,13 +15,22 @@ class CreateInsertHistoryTransaksiAcTrigger extends Migration
     public function up()
     {
         DB::unprepared('
-        CREATE TRIGGER insert_id_automatis_history_transaksi_ac BEFORE INSERT ON history_transaksi_ac
-        FOR EACH ROW
+        CREATE TRIGGER insert_id_automatis_history_transaksi_ac 
+        BEFORE INSERT ON history_transaksi_ac FOR EACH ROW
         BEGIN
             DECLARE next_id INT;
-            SET next_id = (SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "history_transaksi_ac");
-            SET NEW.id_history_transaksi_AC = CONCAT("HIST_", LPAD(next_id, 6, "0"));
-        END
+            DECLARE new_id VARCHAR(20); -- Ubah panjang kolom new_id menjadi 20
+        
+            SELECT MAX(SUBSTRING(id_history_transaksi_AC, 6)) INTO next_id FROM history_transaksi_ac;
+            
+            IF next_id IS NULL THEN
+                SET new_id = "HIST_000001";
+            ELSE
+                SET new_id = CONCAT("HIST_", LPAD(next_id + 1, 6, "0"));
+            END IF;
+        
+            SET NEW.id_history_transaksi_AC = new_id;
+        END;
     
         ');
 
@@ -44,7 +53,8 @@ class CreateInsertHistoryTransaksiAcTrigger extends Migration
                     Biaya_AC,
                     Start_waktu,
                     End_waktu,
-                    Tarif_Listrik,
+                    id_tarif_listrik,
+                    tarif_per_kwh,
                     id_pengguna,
                     Waktu_Penggunaan,
                     Status
@@ -63,7 +73,8 @@ class CreateInsertHistoryTransaksiAcTrigger extends Migration
                     NEW.Biaya_AC,
                     NEW.Start_waktu,
                     NEW.End_waktu,
-                    NEW.Tarif_Listrik,
+                    NEw.id_tarif_listrik,
+                    NEW.tarif_per_kwh,
                     NEW.id_pengguna,
                     NEW.Waktu_Penggunaan,
                     NEW.Status
@@ -92,7 +103,8 @@ class CreateInsertHistoryTransaksiAcTrigger extends Migration
                     Biaya_AC,
                     Start_waktu,
                     End_waktu,
-                    Tarif_Listrik,
+                    id_tarif_listrik,
+                    tarif_per_kwh,
                     id_pengguna,
                     Waktu_Penggunaan,
                     Status
@@ -111,7 +123,8 @@ class CreateInsertHistoryTransaksiAcTrigger extends Migration
                     NEW.Biaya_AC,
                     NEW.Start_waktu,
                     NEW.End_waktu,
-                    NEW.Tarif_Listrik,
+                    NEW.id_tarif_listrik,
+                    NEW.tarif_per_kwh,
                     NEW.id_pengguna,
                     NEW.Waktu_Penggunaan,
                     NEW.Status

@@ -25,10 +25,13 @@ class TransaksiAcModel extends Model
         'Biaya_AC',
         'Start_waktu',
         'End_waktu',
-        'Tarif_Listrik',
+        'id_tarif_listrik',
+        'tarif_per_kwh',
         'id_pengguna',
         'Waktu_Penggunaan',
         'Status',
     ];
+    public $incrementing = true; // Atau false, sesuaikan dengan kebutuhan
+
 }
     //   

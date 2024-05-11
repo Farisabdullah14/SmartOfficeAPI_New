@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Http; // Add this line for the Http class
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Redis; // Import the Redis facade
 use App\Models\HistoryTransaksiLampu;
+use App\Models\TarifListrik;
 
 class TransaksiLampuController extends Controller
 {
@@ -135,13 +136,23 @@ class TransaksiLampuController extends Controller
 
     public function createTransaksiLampu(Request $request)
     {
+        $latestTarif = TarifListrik::latest()->first();
+
         
         $Transaskilampu = new TransaksiLampuModel;
         $Transaskilampu->id_lampu = $request->input('id_lampu');
         $Transaskilampu->Watt_lampu = $request->input('Watt_lampu');
         $Transaskilampu->id_ruangan = $request->input('id_ruangan');
         $Transaskilampu->id_pengguna = $request->input('id_pengguna');
+        // $Transaskilampu->id_tarif_listrik = $request->input('id_tarif_listrik'); // Changed from id_listrik to id_tarif_listrik
+        // $Transaskilampu->tarif_per_kwh = $request->input('tarif_per_kwh');
+              
+
+        $Transaskilampu->id_tarif_listrik = $latestTarif->id; // Mengambil ID tarif listrik terbaru
+        $Transaskilampu->tarif_per_kwh = $latestTarif->tarif_per_kwh;
+    
         $kode_hardware = $request->input('Kode_hardware');
+        
         $Transaskilampu->kode_hardware = $kode_hardware;
 
         $lamp_id = $Transaskilampu->id_lampu; // Retrieve the ID from the saved lampu model
@@ -162,15 +173,24 @@ class TransaksiLampuController extends Controller
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
 
                 $endpoint ="0 ada" ;// "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
+                // $endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}";
+
                 // $endpoint = "http://192.168.170.216:8383/api/on/{$lamp_id}";
-                $Transaskilampu->save();
+                // $Transaskilampu->save();
 
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
                 break;
              case "HDR_001":
-                // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
-                $endpoint = "0 ada" ; //"http://192.168.32.76:8383/api/{$status}/{$lamp_id}";
-                  $Transaskilampu->save();
+                // http://172.20.10.5:8383/
+                // $endpoint = "http://172.20.10.5:8383/api/{$status}/{$lamp_id}";
+                // $endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}";
+
+                print(" adadad  ");
+
+             //   print($Transaskilampu->save());
+                // print($endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}");
+                // $endpoint = "0 ada" ; //"http:// .168.32.76:8383/api/{$status}/{$lamp_id}";
+                // $Transaskilampu->save();
              break;
             default:
                 return response()->json(['message' => 'Invalid Kode_hardware'], 400);
@@ -210,7 +230,7 @@ class TransaksiLampuController extends Controller
         try {
             $status = $request->input('Status');
             $kode_hardware = $request->input('Kode_hardware');
-            $lampu->id_pengguna = $request->input('id_pengguna');
+            $lampu->id_pengguna = $request->input('id_pengguna');    
             $lampu->Status = $status;
             $lampu->Kode_hardware = $kode_hardware;
             $lampu->save();
@@ -224,25 +244,33 @@ class TransaksiLampuController extends Controller
 
             switch ($kode_hardware) {
                 case "HDR_002":
-                $endpoint = "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
+                    $endpoint ="0 ada" ;// "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
+                    print(" adadad  ");
+
+                // $endpoint = "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
+                // $endpoint = "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
                 break;
                 case "HDR_001":
                 // $endpoint = "http://192.168.170.76:8383/api/{$status}/{$lamp_id}";
-                $endpoint = "http://192.168.32.76:8383/api/{$status}/{$lamp_id}";
+                // $endpoint = "http://192.168.32.76:8383/api/{$status}/{$lamp_id}";
+                // $endpoint = "http://172.20.10.5:8383/api/{$status}/{$lamp_id}";
+                $endpoint ="0 ada" ;// "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
+                print(" adadad  ");
+
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
                     break;
                 default:
                     return response()->json(['message' => 'Invalid Kode_hardware'], 400);
             }
     
-            $response = Http::get($endpoint);
+            // $response = Http::get($endpoint);
 
-            if ($response->status() == 200) {
-                // event(new LampuStatusChanged($lamp_id, $status)); // Emit the LampuStatusChanged event
-                return response()->json(['message' => 'Updated successfully']);
-            } else {
-               return response()->json(['error' => 'Failed to update'], $response->status());
-            }
+            // if ($response->status() == 200) {
+            //     // event(new LampuStatusChanged($lamp_id, $status)); // Emit the LampuStatusChanged event
+            //     return response()->json(['message' => 'Updated successfully']);
+            // } else {
+            //    return response()->json(['error' => 'Failed to update'], $response->status());
+            // }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

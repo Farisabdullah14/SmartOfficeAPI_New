@@ -20,18 +20,17 @@ class AddTriggerIdAutomatisCreateTransaksiAc extends Migration
         BEGIN
             DECLARE max_id INT;
             DECLARE new_id INT;
-
+    
             SELECT MAX(SUBSTRING(id_Transaksi_AC, 5)) INTO max_id FROM transaksi_ac;
-
+    
             IF max_id IS NULL THEN
                 SET new_id = 1;
             ELSE
                 SET new_id = max_id + 1;
             END IF;
-
-            SET NEW.id_Transaksi_AC = CONCAT("TRS_", LPAD(new_id, 3, "0"));
-
-            SET NEW.Waktu_Penggunaan="00:00:00";
+    
+            SET NEW.id_Transaksi_AC = CONCAT("TRX_", LPAD(new_id, 5, "0"));
+            SET NEW.Waktu_Penggunaan = "00:00:00";
         END;
     ');    }
 

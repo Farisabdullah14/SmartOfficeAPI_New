@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         LampuSeeder::class,
         RuanganSeeder::class,
         ACSeeder::class,
+        TarifListrikSeeder::class,
     ]);
     }
 }

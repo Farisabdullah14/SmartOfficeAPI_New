@@ -18,6 +18,8 @@ class HistoryTransaksiLampu extends Model
         'biaya_lampu',
         'start_waktu',
         'end_waktu',
+        'id_listrik',
+        'tarif_per_kwh',
         'id_ruangan',
         'name',
         'status',

@@ -19,6 +19,8 @@ class TransaksiLampuModel extends Model
         'Biaya_lampu',
         'Start_waktu',
         'End_waktu',
+        'id_listrik',
+        'tarif_per_kwh',
         'id_ruangan',
         'name',
         'Status',

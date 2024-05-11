@@ -20,9 +20,12 @@ class CreateHistoryTransaksiLampuTable extends Migration
             $table->string('id_lampu'); // Sesuaikan tipe data dengan tabel lampu yang digunakan
             $table->integer('watt_lampu');
             $table->string('kode_hardware');
-            $table->integer('Biaya_lampu');
+            $table->decimal('Biaya_lampu', 8, 2); // Ubah tipe data menjadi decimal
             $table->dateTime('start_waktu');
             $table->dateTime('end_waktu');
+            $table->string('id_tarif_listrik');
+            $table->decimal('tarif_per_kwh');
+
             $table->string('id_ruangan');
             $table->unsignedBigInteger('id_pengguna');
             $table->string('status');

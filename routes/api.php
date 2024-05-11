@@ -81,10 +81,24 @@ Route::get('/searchByIdAC', [\App\Http\Controllers\ACController::class, 'showAll
 
 
 
-// Route::post('/createTransaksiLampu', [\App\Http\Controllers\LampuController::class, 'createTransaksiLampu']);
 
 Route::get('/getDataTerbaruByIdAC/{AC_id}', [\App\Http\Controllers\HistoryTransaksiAcController::class, 'getDataTerbaruByIdAC']);
 Route::post('/getpergerakanac/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'getpergerakanac']);
+
+
+Route::get('/getLatestTransactionAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'getLatestTransactionAC']);
+Route::post('/updateTransaksiOff/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateTransaksiOff']);
+
+
+
+
+Route::post('/updateRemoteTransaksiAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateRemoteTransaksiAC']);
+
+
+
+
+
+
 
 
 

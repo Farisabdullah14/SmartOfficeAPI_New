@@ -20,9 +20,12 @@ class CreateTransaksiLampuTable extends Migration
             $table->foreign('id_lampu')->references('id_lampu')->on('lampu');
             $table->string('Watt_lampu');
             $table->string('Kode_hardware');     
-            $table->integer('Biaya_lampu');
+            $table->decimal('Biaya_lampu', 8, 2); // Ubah tipe data menjadi decimal
             $table->dateTime('Start_waktu');
             $table->dateTime('End_waktu');
+            $table->String('id_tarif_listrik');
+
+            $table->decimal('tarif_per_kwh');
             // $table->dateTime('Date')->nullable();
             $table->string('id_ruangan');
             $table->foreign('id_ruangan')->references('id_ruangan')->on('ruangan');

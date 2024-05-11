@@ -31,8 +31,7 @@ class AddUpdateBiayaPenggunaanACTrigger extends Migration
                 -- Hitung biaya penggunaan AC
               --  SET biaya = 
 
-                 SET NEW.Biaya_AC = total_energi * NEW.Tarif_Listrik;
-
+                 SET NEW.Biaya_AC = total_energi * NEW.tarif_per_kwh;
                  SET NEW.Waktu_Penggunaan = durasi_penggunaan;
 
                 -- Update nilai Biaya_AC pada baris yang bersangkutan

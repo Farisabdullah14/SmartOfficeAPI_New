@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Redis; // Import the Redis facade
 use App\Http\Controllers;
 use App\Models\HistoryTransaksiAC;
 use Illuminate\Support\Facades\DB;
+use App\Models\TarifListrik;
 
 class TransaksiACController extends Controller
 {
@@ -63,52 +64,12 @@ class TransaksiACController extends Controller
         ]);
     }
 
-    // public function getpergerakanac(Request $request, $AC_id)
-    // {
-    //     // Validasi request
-    //     if (!is_string($AC_id)) {
-    //         return response()->json(['message' => 'Parameter AC_id tidak valid'], 400);
-    //     }
-    
-    //     // Cek apakah ada riwayat transaksi AC sebelumnya
-    //     $historyTransaksi = HistoryTransaksiAC::where('id_AC', $AC_id)->exists();
-    
-    //     // Jika ada riwayat transaksi AC, ambil data terbaru
-    //     if ($historyTransaksi) {
-    //         try {
-    //             $dataTerbaru = HistoryTransaksiAC::where('id_AC', $AC_id)
-    //                 ->latest('End_waktu')
-    //                 ->firstOrFail();
-    
-    //             // Pilih kolom yang akan diambil
-    //             $selectedColumns = [
-    //                 'Watt_AC',
-    //                 'Kecepatan_kipas',
-    //                 'Kecepatan_Pendingin',
-    //                 'Mode',
-    //                 'Temp',
-    //                 'Time',
-    //                 'Swing',
-    //             ];
-                
-    
-    //             // Buat transaksi AC baru dengan data dari riwayat transaksi terbaru
-    //             $transaksiBaru = new TransaksiAcModel($dataTerbaru->only($selectedColumns));
-    //             $transaksiBaru->save();
-    
-    //             // Mengembalikan response JSON dengan data AC yang dipilih
-    //             return response()->json($transaksiBaru);
-    //         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
-    //             return response()->json(['message' => 'Data tidak ditemukan'], 404);
-    //         }
-    //     } else {
-    //         return response()->json(['message' => 'Tidak ada riwayat transaksi AC'], 404);
-    //     }
-    // }
-
-
     public function getpergerakanac(Request $request, $AC_id)
 {
+
+
+    $latestTarif = TarifListrik::latest()->first();
+
     $Tarif_listrika = '1444.70';
 
     // Validasi request
@@ -152,7 +113,12 @@ class TransaksiACController extends Controller
             $AC->Temp = $ACData['Temp'];
             $AC->Time = $ACData['Time'];
             $AC->Swing = $ACData['Swing'];
-            $AC->Tarif_Listrik = $Tarif_listrika;
+
+            //$Transaskilampu->id_tarif_listrik = $latestTarif->id; // Mengambil ID tarif listrik terbaru
+
+            $AC->id_tarif_listrik = $latestTarif->id; // Gunakan id tarif listrik yang terbaru
+            $AC->tarif_per_kwh = $latestTarif->tarif_per_kwh; // Gunakan tarif per kWh yang terbaru
+
             $AC->id_pengguna = $request->input('id_pengguna');
             $AC->kode_hardware = $ACData['Kode_hardware'];
 
@@ -217,7 +183,11 @@ class TransaksiACController extends Controller
         $AC->Temp = $Temp;
         $AC->Time = $Time;
         $AC->Swing = $Swing;
-        $AC->Tarif_Listrik = $Tarif_listrika;
+
+
+        $AC->id_tarif_listrik = $latestTarif->id; // Gunakan id tarif listrik yang terbaru
+        $AC->tarif_per_kwh = $latestTarif->tarif_per_kwh; // Gunakan tarif per kWh yang terbaru
+              //  $AC->Tarif_Listrik = $Tarif_listrika;
         $AC->id_pengguna = $request->input('id_pengguna');
         $AC->kode_hardware = $TBAC->kode_hardware;
 
@@ -253,8 +223,7 @@ class TransaksiACController extends Controller
     {
 
 
-
-
+        $latestTarif = TarifListrik::latest()->first();
 
         $AC = new TransaksiAcModel;
         // $AC->id_AC = $request->input('id_AC');
@@ -268,7 +237,16 @@ class TransaksiACController extends Controller
         $AC->Temp = $request->input('Temp');
         $AC->Time = $request->input('Time');
         $AC->Swing = $request->input('Swing');
-        $AC->Tarif_Listrik = $request->input('Tarif_Listrik');
+        $AC->id_tarif_listrik = $latestTarif->id ?? null; // Gunakan id tarif listrik yang terbaru, jika ada
+        $AC->tarif_per_kwh = $latestTarif->tarif_per_kwh ?? null; // Gunakan tarif per kWh yang terbaru, jika ada
+    
+
+        // $AC->id_tarif_listrik = $latestTarif->id; // Gunakan id tarif listrik yang terbaru, jika ada
+        // $AC->tarif_per_kwh = $latestTarif->tarif_per_kwh; // Gunakan tarif per kWh yang terbaru, jika ada
+    
+    
+    
+
         $AC->id_pengguna = $request->input('id_pengguna');
         $AC->Waktu_Penggunaan = $request->input('Waktu_Penggunaan');
         $kode_hardware = $request->input('Kode_hardware');
@@ -278,7 +256,6 @@ class TransaksiACController extends Controller
         $AC_ = AC::where('id_AC', $AC_id)->first();
 
         if (!$AC_) {
-        
             return response()->json(['message' => 'AC not found'], 404);
         }
         
@@ -367,7 +344,8 @@ class TransaksiACController extends Controller
         'Biaya_AC',
         'Start_waktu',
         'End_waktu',
-        'Tarif_Listrik',
+        'tarif_per_kwh',
+        'id_tarif_listrik',
         'id_pengguna',
         'Waktu_Penggunaan',
         'Status',
@@ -395,14 +373,6 @@ class TransaksiACController extends Controller
             return response()->json(['error' => 'Record not found'], 404);
         }
         try {
-         
-    //  $status = $request->input('Status');
-    //  $AC->Kecepatan_kipas = $request->input('Kecepatan_kipas');
-         
-    //         $kode_hardware = $request->input('Kode_hardware');
-    
-    //         $AC->Kode_hardware = $kode_hardware;
-            // $AC->save();
             $AC->Kecepatan_kipas = $kecepatan_kipas;
             $AC->Kode_hardware = $kode_hardware;
             $AC->save();
@@ -446,4 +416,128 @@ class TransaksiACController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+
+
+
+    public function updateTransaksiOff(Request $request, $AC_id)
+    {
+        // Mendapatkan transaksi terbaru berdasarkan id_AC dengan status 'on'
+        $latestTransaction = TransaksiACModel::where('id_AC', $AC_id)
+            ->where('Status', 'on')
+            ->orderBy('End_waktu', 'desc')
+            ->first();
+
+        if (!$latestTransaction) {
+            return response()->json(['message' => 'Tidak ada transaksi terbaru dengan id_AC tersebut dan status on'], 404);
+        }
+
+        // Mengubah status menjadi 'off' dan menambahkan id_pengguna baru
+        $latestTransaction->Status = 'off';
+        $latestTransaction->id_pengguna = $request->input('id_pengguna');
+        $latestTransaction->save();
+
+        return response()->json(['message' => 'Transaksi telah berhasil diupdate menjadi off'], 200);
+    }
+
+
+
+// public function getLatestTransactionAC(Request $request, $AC_id)
+// {
+//     // Mendapatkan transaksi terbaru berdasarkan id_AC dengan status 'on'
+//     $latestTransaction = TransaksiACModel::where('id_AC', $AC_id)
+//         ->where('Status', 'on')
+//         ->orderBy('End_waktu', 'desc')
+//         ->first();
+
+//     if (!$latestTransaction) {
+//         return response()->json(['message' => 'Tidak ada transaksi terbaru dengan id_AC tersebut dan status on'], 404);
+//     }
+//     return response()->json($latestTransaction, 200);
+// }
+
+
+
+
+    public function getLatestTransactionAC(Request $request, $AC_id)
+    {
+        // Mendapatkan transaksi terbaru berdasarkan id_AC dengan status 'on'
+        $latestTransaction = TransaksiACModel::where('id_AC', $AC_id)
+            ->where('Status', 'on')
+            ->orderBy('End_waktu', 'desc')
+            ->first();
+
+        // Jika tidak ditemukan transaksi dengan kriteria yang diberikan
+        if (!$latestTransaction) {
+            return response()->json(['message' => 'Tidak ada transaksi terbaru dengan id_AC tersebut dan status on'], 404);
+        }
+
+        // Mengambil data yang diminta dari transaksi terbaru
+        $data = [
+            'Kecepatan_kipas' => $latestTransaction->Kecepatan_kipas,
+            'Kecepatan_Pendingin' => $latestTransaction->Kecepatan_Pendingin,
+            'Mode' => $latestTransaction->Mode,
+            'Temp' => $latestTransaction->Temp,
+            'Time' => $latestTransaction->Time,
+            'Swing' => $latestTransaction->Swing,
+        ];
+
+        // Mengembalikan data dalam format JSON
+        return response()->json($data, 200);
+    }
+
+
+
+
+// public function updateRemoteTransaksiAC(Request $request, $AC_id){
+
+//     $latestTransaction = TransaksiACModel::where('id_AC', $AC_id)
+//     ->where('Status', 'on')
+//     ->orderBy('End_waktu', 'desc')
+//     ->first();
+
+// if (!$latestTransaction) {
+//     return response()->json(['message' => 'Tidak ada transaksi terbaru dengan id_AC tersebut dan status on'], 404);
+// }
+// // latestTransaction
+// }
+
+public function updateRemoteTransaksiAC(
+    Request $request, $AC_id)
+{
+    // Cari transaksi terbaru dengan id_AC tersebut dan status 'on'
+    $latestTransaction = TransaksiACModel::where('id_AC', $AC_id)
+        ->where('Status', 'on')
+        ->orderBy('End_waktu', 'desc')
+        ->first();
+
+    // Jika tidak ada transaksi terbaru, kembalikan respons dengan pesan error
+    if (!$latestTransaction) {
+        return response()->json(['message' => 'Tidak ada transaksi terbaru dengan id_AC tersebut dan status on'], 404);
+    }
+
+    // Lakukan validasi input
+    $request->validate([
+        'Kecepatan_kipas' => 'required|in:Low,Medium,High',
+        'Kecepatan_Pendingin' => 'required|in:Low,Medium,High',
+        'Mode' => 'required|string',
+        'Temp' => 'required|integer',
+        'Time' => 'required|string',
+        'Swing' => 'required|string',
+        'id_pengguna' => 'required|integer',
+    ]);
+
+    try {
+        // Update data transaksi terbaru dengan data yang diterima dari request
+        $latestTransaction->update($request->all());
+
+        // Kembalikan respons sukses
+        return response()->json(['message' => 'Data transaksi berhasil diperbarui'], 200);
+    } catch (\Exception $e) {
+        // Tangani kesalahan dan kembalikan pesan error jika terjadi
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+
+
 }

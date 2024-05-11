@@ -20,7 +20,7 @@ class AddTriggerCalculateBiayaAndSetEndWaktu extends Migration
         FOR EACH ROW
         BEGIN
             -- Set End_waktu to the current time
-            SET NEW.End_waktu = CURRENT_TIME();
+            SET NEW.End_waktu = CURRENT_TIMESTAMP();
             
             -- Calculate the duration in seconds from Start_waktu to End_waktu
             SET @duration = TIMESTAMPDIFF(SECOND, NEW.Start_waktu, NEW.End_waktu);
@@ -30,24 +30,22 @@ class AddTriggerCalculateBiayaAndSetEndWaktu extends Migration
                 SET @duration = @duration + TIME_TO_SEC(TIMEDIFF(DATE_ADD(DATE(NEW.Start_waktu), INTERVAL 1 DAY), NEW.Start_waktu));
             END IF;
             
-            -- Calculate Biaya_lampu based on the formula: Biaya_lampu = Watt_lampu * (duration / 3600)
-            SET NEW.Biaya_lampu = NEW.Watt_lampu * @duration / 3600;
-
-
-        
+            -- Calculate Biaya_lampu based on the formula: Biaya_lampu = (Watt_lampu / 1000) * (duration / 3600) * tarif_per_kwh
+            -- Dividing Watt_lampu by 1000 to convert it to kilowatt
+            SET NEW.Biaya_lampu = (NEW.Watt_lampu / 1000) * (@duration / 3600) * NEW.tarif_per_kwh;
         END
         ');       
     }
     
     
-        /**
-         * Reverse the migrations.
-         *
-         * @return void
-         */
-        public function down()
-        {
-            DB::unprepared('DROP TRIGGER IF EXISTS `calculate_biaya_and_set_end_waktu`');
-        }
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        DB::unprepared('DROP TRIGGER IF EXISTS `calculate_biaya_and_set_end_waktu`');
     }
-    
+}
+
