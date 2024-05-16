@@ -41,7 +41,6 @@ Route::get('/ambilDataDanGabungkan/{idRuangan}', [\App\Http\Controllers\RuanganC
 
 
 // Route::get('/getNumberOfDevicesByRuanganId/{idRuangan}', [\App\Http\Controllers\RuanganController::class, 'getNumberOfDevicesByRuanganId']);
-
 // http://192.168.100.229:8181/api/getLatestTransaction/{id_lampu}
 
 
@@ -90,6 +89,13 @@ Route::get('/getLatestTransactionAC/{AC_id}', [\App\Http\Controllers\TransaksiAC
 Route::post('/updateTransaksiOff/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateTransaksiOff']);
 
 
+
+Route::get('/LihatDataAktivitasPengguna/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatDataAktivitasPengguna']);
+Route::get('/LihatTransaksiLampu/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatTransaksiLampu']);
+Route::get('/PenggunaanDayaLampuPerHari/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'PenggunaanDayaLampuPerHari']);
+Route::get('/JumlahPerangkatAktivitasPengguna/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'JumlahPerangkatAktivitasPengguna']);
+Route::get('/melihatDayaLampuPerHari', [\App\Http\Controllers\AktivitasPengguna::class, 'melihatDayaLampuPerHari']);
+Route::get('/melihatDayaLampuPerHariPengguna/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'melihatDayaLampuPerHariPengguna']);
 
 
 Route::post('/updateRemoteTransaksiAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateRemoteTransaksiAC']);
