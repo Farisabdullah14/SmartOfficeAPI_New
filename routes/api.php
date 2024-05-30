@@ -48,10 +48,8 @@ Route::get('/ambilDataDanGabungkan/{idRuangan}', [\App\Http\Controllers\RuanganC
 // Route::put('/updateTransaksiLampu/{id_lampu}', [\App\Http\Controllers\TransaksiLampuController::class, 'updateTransaksiLampu']);
 
 Route::get('/LampuShowAllData', [\App\Http\Controllers\LampuController::class, 'showAllData']);
-
 Route::get('/LampushowSelectedData', [\App\Http\Controllers\LampuController::class, 'showSelectedData']);
 Route::get('/LampushowSelectedData', [\App\Http\Controllers\LampuController::class, 'showSelectedData']);
-
 Route::get('/TransaksiLampuShowAllData', [\App\Http\Controllers\TransaksiLampuController::class, 'showAllData']);
 
 
@@ -96,6 +94,13 @@ Route::get('/PenggunaanDayaLampuPerHari/{id_pengguna}', [\App\Http\Controllers\A
 Route::get('/JumlahPerangkatAktivitasPengguna/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'JumlahPerangkatAktivitasPengguna']);
 Route::get('/melihatDayaLampuPerHari', [\App\Http\Controllers\AktivitasPengguna::class, 'melihatDayaLampuPerHari']);
 Route::get('/melihatDayaLampuPerHariPengguna/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'melihatDayaLampuPerHariPengguna']);
+Route::get('/hitungKwhPerHari/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungKwhPerHari']);
+Route::get('/hitungKwhPerMinggu/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungKwhPerMinggu']);
+Route::get('/LihatTransaksiLampuMingguan/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatTransaksiLampuMingguan']);
+Route::get('/aaa', [\App\Http\Controllers\AktivitasPengguna::class, 'aaa']);
+Route::get('/LihatTransaksiLampuDanHitungKwhPerHari/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatTransaksiLampuDanHitungKwhPerHari']);
+Route::get('/hitungKwh/{id_pengguna}/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungKwh']);
+Route::get('/lihatTransaksiLampuGabungan/{id_pengguna}/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'lihatTransaksiLampuGabungan']);
 
 
 Route::post('/updateRemoteTransaksiAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateRemoteTransaksiAC']);

@@ -168,7 +168,6 @@ class TransaksiLampuController extends Controller
 
         switch ($kode_hardware) {
             case "HDR_002":
-                
                 //  $status = 'on';
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
 
@@ -245,8 +244,7 @@ class TransaksiLampuController extends Controller
             switch ($kode_hardware) {
                 case "HDR_002":
                     $endpoint ="0 ada" ;// "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
-                    print(" adadad  ");
-
+ 
                 // $endpoint = "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
                 // $endpoint = "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
                 break;
