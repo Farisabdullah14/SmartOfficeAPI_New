@@ -20,5 +20,9 @@ class Ruangan extends Model
     ];
 
     protected $primaryKey = 'id';
+    public function transaksi()
+    {
+        return $this->hasMany(RuanganTransaksi::class, 'id_ruangan');
+    }
 
 }

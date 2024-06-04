@@ -101,6 +101,10 @@ Route::get('/aaa', [\App\Http\Controllers\AktivitasPengguna::class, 'aaa']);
 Route::get('/LihatTransaksiLampuDanHitungKwhPerHari/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatTransaksiLampuDanHitungKwhPerHari']);
 Route::get('/hitungKwh/{id_pengguna}/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungKwh']);
 Route::get('/lihatTransaksiLampuGabungan/{id_pengguna}/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'lihatTransaksiLampuGabungan']);
+Route::post('/RuanganTransaksiController/', [\App\Http\Controllers\RuanganTransaksiController::class, 'store']);
+Route::post('/PinActivityRuanganController/{id_ruangan_transaksi}', [\App\Http\Controllers\PinActivityRuanganController::class, 'store']);
+Route::get('/getRuanganWithTransaksi/{id_pengguna}', [\App\Http\Controllers\RuanganController::class, 'getRuanganWithTransaksi']);
+Route::get('/coba/', [\App\Http\Controllers\PinActivityRuanganController::class, 'coba']);
 
 
 Route::post('/updateRemoteTransaksiAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateRemoteTransaksiAC']);
