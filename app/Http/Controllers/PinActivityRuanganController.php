@@ -51,7 +51,40 @@ class PinActivityRuanganController extends Controller
     }
     
     
-    
+    public function pinActive(Request $request, $id_ruangan, $pin_ruangan)
+{
+    // Cari ruangan transaksi terbaru berdasarkan id_ruangan dan pin_ruangan
+    $ruangan_transaksi = RuanganTransaksi::where('id_ruangan', $id_ruangan)
+                                            ->where('pin_ruangan', $pin_ruangan)
+                                            ->orderBy('created_at', 'desc')
+                                            ->first();
+
+    // Pastikan ruangan transaksi ditemukan
+    if (!$ruangan_transaksi) {
+        return response()->json(['message' => 'Ruangan transaksi tidak ditemukan'], 404);
+    }
+
+    // Hitung jumlah pin ruangan yang sudah diaktifkan
+    $jumlah_pin = PinActivityRuangan::where('id_ruangan_transaksi', $ruangan_transaksi->id_ruangan_transaksi)->count();
+
+    // Jika jumlah pin ruangan sudah 2 kali atau lebih, kembalikan pesan error
+    if ($jumlah_pin >= 2) {
+        return response()->json(['message' => 'Maaf, pin ruangannya sudah diaktifkan lebih dari 2 kali'], 400);
+    }
+
+    // Buat record baru di tabel pin_activity_ruangan
+    $pinActivityRuangan = new PinActivityRuangan();
+    $pinActivityRuangan->id_ruangan_transaksi = $ruangan_transaksi->id_ruangan_transaksi;
+    $pinActivityRuangan->id_ruangan = $ruangan_transaksi->id_ruangan;
+    $pinActivityRuangan->start_time = $ruangan_transaksi->start_time;
+    $pinActivityRuangan->end_time = $ruangan_transaksi->end_time;
+    $pinActivityRuangan->user_id = $request->input('user_id');
+    $pinActivityRuangan->pin_ruangan = $ruangan_transaksi->pin_ruangan;
+    $pinActivityRuangan->save();
+
+    return response()->json($pinActivityRuangan, 201);
+}
+
      
     
 

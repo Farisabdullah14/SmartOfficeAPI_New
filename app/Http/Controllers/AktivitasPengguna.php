@@ -431,7 +431,43 @@ public function LihatTransaksiLampu(Request $request, $id_pengguna)
     return response()->json($mergedData);
     }   
 
-
+    public function LihatDataAktivitasSemuaPengguna(Request $request)
+    {
+        // Ambil data transaksi lampu terbaru dengan status 'on'
+        $latestTransaksiLampu = TransaksiLampuModel::where('Status', 'on')
+                                                    ->orderBy('Start_waktu', 'desc') // Urutkan berdasarkan Start_waktu terlama
+                                                    ->select('id_Transaksi_lampu', 'id_lampu', 'status', 'Start_waktu')
+                                                    ->get(); 
+        
+        // Ambil data transaksi AC terbaru dengan status 'on'
+        $latestTransaksiAC = TransaksiAcModel::where('Status', 'on')
+                                                ->orderBy('Start_waktu', 'desc') // Urutkan berdasarkan Start_waktu terlama
+                                                ->select('id_Transaksi_AC', 'id_AC', 'status', 'Start_waktu')
+                                                ->get(); 
+        
+        // Mengonversi data ke dalam format array 
+        $lampuData = $latestTransaksiLampu->toArray();
+        $acData = $latestTransaksiAC->toArray();
+        
+        // Gabungkan data lampu dan AC
+        $mergedData = array_merge($lampuData, $acData);
+        
+        // Urutkan array gabungan berdasarkan Start_waktu terlama
+        usort($mergedData, function($a, $b) {
+            if (isset($a['Start_waktu']) && isset($b['Start_waktu'])) {
+                return strtotime($a['Start_waktu']) - strtotime($b['Start_waktu']);
+            }
+            return 0;
+        });
+    
+        // Hapus bagian tampilan Start_waktu dari setiap elemen
+        foreach ($mergedData as &$item) {
+            unset($item['Start_waktu']);
+        }
+    
+        // Format data untuk respons JSON
+        return response()->json($mergedData);
+    }
    
     // public function hitungKwhPerHari(Request $request, $id_pengguna)
     // {
@@ -729,20 +765,16 @@ public function hitungKwh(Request $request, $id_pengguna, $periode)
         return response()->json($orderedResults);
 
     }elseif ($periode === 'weekly') {
-        $startDate = $today->copy()->startOfMonth(); // Mulai dari awal bulan ini
-        $endDate = $today->endOfMonth(); // Akhir dari bulan ini
+        $startDate = $today->copy()->subWeeks(4)->startOfWeek(); // Mulai dari awal minggu 4 minggu yang lalu
+        $endDate = $today->endOfWeek(); // Sampai akhir minggu ini
 
         $weeklyData = [];
         $weekNumbers = [];
 
-        // Loop melalui setiap minggu dari awal bulan
+        // Loop melalui setiap minggu dari awal periode sampai akhir periode
         while ($startDate->lte($endDate)) {
             $weekStartDate = $startDate->copy();
             $weekEndDate = $startDate->copy()->endOfWeek(); // Akhir minggu
-
-            if ($weekEndDate->gt($endDate)) {
-                $weekEndDate = $endDate; // Jangan melewati akhir bulan
-            }
 
             $transactions = TransaksiLampuModel::where('id_pengguna', $id_pengguna)
                 ->whereBetween('Start_waktu', [$weekStartDate->startOfDay(), $weekEndDate->endOfDay()])
@@ -767,9 +799,15 @@ public function hitungKwh(Request $request, $id_pengguna, $periode)
             $startDate->addWeek(); // Pindah ke minggu berikutnya
         }
 
+        if (empty($weeklyData)) {
+            return response()->json(['error' => 'Tidak ada data untuk periode yang dipilih'], 400);
+        }
+
         $result = array_combine($weekNumbers, $weeklyData);
 
         return response()->json($result);
+    
+        
     }elseif ($periode === 'monthly') {
         $startDate = Carbon::parse('first day of January ' . $today->year)->startOfDay();
         $endDate = Carbon::parse('last day of December ' . $today->year)->endOfDay();

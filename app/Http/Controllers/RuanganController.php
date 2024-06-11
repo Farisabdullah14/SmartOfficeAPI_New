@@ -188,6 +188,59 @@ class RuanganController extends Controller
 //     return response()->json($ruanganData);
 // }
 
+// public function getRuanganWithTransaksi(Request $request, $userId)
+// {
+//     // Subquery untuk mendapatkan transaksi terbaru per id_ruangan
+//     $subQuery = DB::table('ruangan_transaksi as rt1')
+//                   ->select('rt1.id_ruangan', DB::raw('MAX(rt1.id) as max_id'))
+//                   ->groupBy('rt1.id_ruangan');
+
+//     // Mengambil data ruangan dengan transaksi terbaru berdasarkan user_id
+//     $ruanganData = DB::table('ruangan')
+//                     ->leftJoinSub($subQuery, 'rt_sub', function($join) {
+//                         $join->on('ruangan.id_ruangan', '=', 'rt_sub.id_ruangan');
+//                     })
+//                     ->leftJoin('ruangan_transaksi', function($join) use ($userId) {
+//                         $join->on('rt_sub.max_id', '=', 'ruangan_transaksi.id')
+//                              ->where('ruangan_transaksi.user_id', '=', $userId);
+//                     })
+//                     ->select(
+//                         'ruangan.id_ruangan',
+//                         'ruangan.nama_ruangan',
+//                         'ruangan.status as status_ruangan',
+//                         'ruangan_transaksi.id as transaksi_id',  // tambahkan id transaksi untuk update
+//                         'ruangan_transaksi.status as status_transaksi',
+//                         'ruangan_transaksi.user_id',
+//                         'ruangan_transaksi.start_time',
+//                         'ruangan_transaksi.end_time'
+//                     )
+//                     ->get();
+
+//     // Menambahkan jumlah perangkat pada setiap ruangan dan memeriksa waktu end_time
+//     $ruanganData = $ruanganData->map(function ($item) {
+//         $lampuCount = DB::table('lampu')->where('id_ruangan', $item->id_ruangan)->count();
+//         $acCount = DB::table('ac')->where('id_ruangan', $item->id_ruangan)->count();
+//         $item->jumlah_perangkat = $lampuCount + $acCount;
+
+//         // Memeriksa dan mengupdate status transaksi berdasarkan end_time
+//         if ($item->end_time && Carbon::parse($item->end_time)->lessThan(Carbon::now())) {
+//             $item->status_transaksi = 'Off';
+//             // Mengupdate status_transaksi di database
+//             DB::table('ruangan_transaksi')
+//                 ->where('id', $item->transaksi_id)
+//                 ->update(['status' => 'Off']);
+//         }
+
+//         // Menghapus kolom start_time dan end_time
+//         unset($item->start_time, $item->end_time , $item->transaksi_id);
+
+//         return $item;
+//     });
+
+//     return response()->json($ruanganData);
+// }
+
+
 public function getRuanganWithTransaksi(Request $request, $userId)
 {
     // Subquery untuk mendapatkan transaksi terbaru per id_ruangan
@@ -200,45 +253,35 @@ public function getRuanganWithTransaksi(Request $request, $userId)
                     ->leftJoinSub($subQuery, 'rt_sub', function($join) {
                         $join->on('ruangan.id_ruangan', '=', 'rt_sub.id_ruangan');
                     })
-                    ->leftJoin('ruangan_transaksi', function($join) use ($userId) {
-                        $join->on('rt_sub.max_id', '=', 'ruangan_transaksi.id')
-                             ->where('ruangan_transaksi.user_id', '=', $userId);
+                    ->leftJoin('ruangan_transaksi', 'rt_sub.max_id', '=', 'ruangan_transaksi.id')
+                    ->leftJoin('pin_activity_ruangan', function($join) use ($userId) {
+                        $join->on('ruangan_transaksi.id_ruangan_transaksi', '=', 'pin_activity_ruangan.id_ruangan_transaksi')
+                             ->where('pin_activity_ruangan.user_id', '=', $userId);
                     })
                     ->select(
                         'ruangan.id_ruangan',
                         'ruangan.nama_ruangan',
                         'ruangan.status as status_ruangan',
-                        'ruangan_transaksi.id as transaksi_id',  // tambahkan id transaksi untuk update
                         'ruangan_transaksi.status as status_transaksi',
-                        'ruangan_transaksi.user_id',
-                        'ruangan_transaksi.start_time',
-                        'ruangan_transaksi.end_time'
+                        'pin_activity_ruangan.user_id'
                     )
                     ->get();
 
-    // Menambahkan jumlah perangkat pada setiap ruangan dan memeriksa waktu end_time
+    // Menambahkan jumlah perangkat pada setiap ruangan
     $ruanganData = $ruanganData->map(function ($item) {
         $lampuCount = DB::table('lampu')->where('id_ruangan', $item->id_ruangan)->count();
         $acCount = DB::table('ac')->where('id_ruangan', $item->id_ruangan)->count();
         $item->jumlah_perangkat = $lampuCount + $acCount;
-
-        // Memeriksa dan mengupdate status transaksi berdasarkan end_time
-        if ($item->end_time && Carbon::parse($item->end_time)->lessThan(Carbon::now())) {
-            $item->status_transaksi = 'Off';
-            // Mengupdate status_transaksi di database
-            DB::table('ruangan_transaksi')
-                ->where('id', $item->transaksi_id)
-                ->update(['status' => 'Off']);
-        }
-
-        // Menghapus kolom start_time dan end_time
-        unset($item->start_time, $item->end_time , $item->transaksi_id);
 
         return $item;
     });
 
     return response()->json($ruanganData);
 }
+
+
+
+
 
 
 public function ambilDataDanGabungkan(Request $request, $idRuangan)

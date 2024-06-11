@@ -170,6 +170,7 @@ class TransaksiLampuController extends Controller
             case "HDR_002":
                 //  $status = 'on';
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
+                // $endpoint = "http://192.168.100.51:8383/relay/{$lamp_id}/{$status}";
 
                 $endpoint ="0 ada" ;// "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
                 // $endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}";
@@ -182,6 +183,8 @@ class TransaksiLampuController extends Controller
              case "HDR_001":
                 // http://172.20.10.5:8383/
                 // $endpoint = "http://172.20.10.5:8383/api/{$status}/{$lamp_id}";
+                                // $endpoint = "http://192.168.100.51:8383/relay/{$lamp_id}/{$status}";
+
                 // $endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}";
 
                 print(" adadad  ");
@@ -189,25 +192,27 @@ class TransaksiLampuController extends Controller
              //   print($Transaskilampu->save());
                 // print($endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}");
                 // $endpoint = "0 ada" ; //"http:// .168.32.76:8383/api/{$status}/{$lamp_id}";
-                // $Transaskilampu->save();
+                // $endpoint = "http://192.168.100.234:8181/relay/{$lamp_id}/{$status}";
+
+                $Transaskilampu->save();
              break;
             default:
                 return response()->json(['message' => 'Invalid Kode_hardware'], 400);
         }
 
-        // $response = Http::get($endpoint);
-        // //         logger($response->body());
-        // // dd($response->body());
-        // if ($response->successful()) {
-        //     return response()->json(['message' => 'Lamp control successful']);
-        // } else {
-        //     return response()->json(['error' => 'Failed to control lamp'], $response->status());
-        // }
-        // if (!$Transaskilampu) {
-        //     return response()->json([
-        //         'message' => 'Data not found',
-        //     ], 404);
-        // }
+        $response = Http::get($endpoint);
+        //         logger($response->body());
+        // dd($response->body());
+        if ($response->successful()) {
+            return response()->json(['message' => 'Lamp control successful']);
+        } else {
+            return response()->json(['error' => 'Failed to control lamp'], $response->status());
+        }
+        if (!$Transaskilampu) {
+            return response()->json([
+                'message' => 'Data not found',
+            ], 404);
+        }
 
         // return response()->json([
         //     'message' => 'success',
@@ -252,7 +257,8 @@ class TransaksiLampuController extends Controller
                 // $endpoint = "http://192.168.170.76:8383/api/{$status}/{$lamp_id}";
                 // $endpoint = "http://192.168.32.76:8383/api/{$status}/{$lamp_id}";
                 // $endpoint = "http://172.20.10.5:8383/api/{$status}/{$lamp_id}";
-                $endpoint ="0 ada" ;// "http://192.168.170.216:8383/api/{$status}/{$lamp_id}";
+                http://192.168.100.234:8181/relay/LMP_014/off
+                // $endpoint = "http://192.168.100.234:8181/relay/{$lamp_id}/{$status}";
                 print(" adadad  ");
 
                 // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
@@ -261,14 +267,14 @@ class TransaksiLampuController extends Controller
                     return response()->json(['message' => 'Invalid Kode_hardware'], 400);
             }
     
-            // $response = Http::get($endpoint);
+            $response = Http::get($endpoint);
 
-            // if ($response->status() == 200) {
-            //     // event(new LampuStatusChanged($lamp_id, $status)); // Emit the LampuStatusChanged event
-            //     return response()->json(['message' => 'Updated successfully']);
-            // } else {
-            //    return response()->json(['error' => 'Failed to update'], $response->status());
-            // }
+            if ($response->status() == 200) {
+                // event(new LampuStatusChanged($lamp_id, $status)); // Emit the LampuStatusChanged event
+                return response()->json(['message' => 'Updated successfully']);
+            } else {
+               return response()->json(['error' => 'Failed to update'], $response->status());
+            }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

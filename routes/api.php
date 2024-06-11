@@ -89,6 +89,7 @@ Route::post('/updateTransaksiOff/{AC_id}', [\App\Http\Controllers\TransaksiACCon
 
 
 Route::get('/LihatDataAktivitasPengguna/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatDataAktivitasPengguna']);
+Route::get('/LihatDataAktivitasSemuaPengguna', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatDataAktivitasSemuaPengguna']);
 Route::get('/LihatTransaksiLampu/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatTransaksiLampu']);
 Route::get('/PenggunaanDayaLampuPerHari/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'PenggunaanDayaLampuPerHari']);
 Route::get('/JumlahPerangkatAktivitasPengguna/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'JumlahPerangkatAktivitasPengguna']);
@@ -105,6 +106,8 @@ Route::post('/RuanganTransaksiController/', [\App\Http\Controllers\RuanganTransa
 Route::post('/PinActivityRuanganController/{id_ruangan_transaksi}', [\App\Http\Controllers\PinActivityRuanganController::class, 'store']);
 Route::get('/getRuanganWithTransaksi/{id_pengguna}', [\App\Http\Controllers\RuanganController::class, 'getRuanganWithTransaksi']);
 Route::get('/coba/', [\App\Http\Controllers\PinActivityRuanganController::class, 'coba']);
+Route::post('/CreateTransaksiRuanganSementara/', [\App\Http\Controllers\RuanganTransaksiController::class, 'CreateTransaksiRuanganSementara']);
+Route::post('/pinActive/{id_ruangan}/{pin_ruangan}', [\App\Http\Controllers\PinActivityRuanganController::class, 'pinActive']);
 
 
 Route::post('/updateRemoteTransaksiAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateRemoteTransaksiAC']);

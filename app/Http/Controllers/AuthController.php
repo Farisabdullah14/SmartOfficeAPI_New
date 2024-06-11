@@ -9,7 +9,6 @@ use App\Models\User;
 class AuthController extends Controller
 {
     public function login(Request $request){
-
         $credentials = $request->only('name', 'pass');
 
         $user = User::where('username', $credentials['name'])->first();
@@ -26,5 +25,6 @@ class AuthController extends Controller
             'message' => 'Login success',
             'user' => $user->id,
             'name' => $user->name,
+            'usergroup'=>$user->usergroup,
         ]);
     }}
