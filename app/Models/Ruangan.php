@@ -16,7 +16,8 @@ class Ruangan extends Model
         'id',
         'id_ruangan',
         'nama_ruangan',
-        'status'
+        'status',
+        'door_lock_url',
     ];
 
     protected $primaryKey = 'id';

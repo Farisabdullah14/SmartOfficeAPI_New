@@ -18,6 +18,7 @@ class CreateTabelRuangan extends Migration
             $table->string('id_ruangan')->unique();
             $table->string('nama_ruangan');
             $table->string('status');
+            $table->string('door_lock_url');
             $table->timestamps();
             
         });

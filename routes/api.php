@@ -22,7 +22,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 
-Route::post('/TransaksiLampu', [\App\Http\Controllers\TransaksiLampuController::class, 'createTransaksiLampu']);
+Route::get('/getImageAndKeterangan/{id_lampu}', [\App\Http\Controllers\LampuController::class, 'getImageAndKeterangan']);
+Route::post('/createLampu', [\App\Http\Controllers\LampuController::class, 'createLampu']);
+Route::post('/updateLampu/{id_lampu}', [\App\Http\Controllers\LampuController::class, 'updateLampu']);
 Route::get('/getMaxIdTransaksiOnStatus', [\App\Http\Controllers\TransaksiLampuController::class, 'getPemanggilanOn']);
 Route::get('/getOnStatus', [\App\Http\Controllers\TransaksiLampuController::class, 'getMaxIdTransaksiOnStatus']);
 
@@ -48,7 +50,7 @@ Route::get('/ambilDataDanGabungkan/{idRuangan}', [\App\Http\Controllers\RuanganC
 // Route::put('/updateTransaksiLampu/{id_lampu}', [\App\Http\Controllers\TransaksiLampuController::class, 'updateTransaksiLampu']);
 
 Route::get('/LampuShowAllData', [\App\Http\Controllers\LampuController::class, 'showAllData']);
-Route::get('/LampushowSelectedData', [\App\Http\Controllers\LampuController::class, 'showSelectedData']);
+Route::get('/showSelectedData', [\App\Http\Controllers\LampuController::class, 'showSelectedData']);
 Route::get('/LampushowSelectedData', [\App\Http\Controllers\LampuController::class, 'showSelectedData']);
 Route::get('/TransaksiLampuShowAllData', [\App\Http\Controllers\TransaksiLampuController::class, 'showAllData']);
 
@@ -107,7 +109,10 @@ Route::post('/PinActivityRuanganController/{id_ruangan_transaksi}', [\App\Http\C
 Route::get('/getRuanganWithTransaksi/{id_pengguna}', [\App\Http\Controllers\RuanganController::class, 'getRuanganWithTransaksi']);
 Route::get('/coba/', [\App\Http\Controllers\PinActivityRuanganController::class, 'coba']);
 Route::post('/CreateTransaksiRuanganSementara/', [\App\Http\Controllers\RuanganTransaksiController::class, 'CreateTransaksiRuanganSementara']);
+Route::post('/CreateTransaksiRuangan/', [\App\Http\Controllers\RuanganTransaksiController::class, 'CreateTransaksiRuangan']);
 Route::post('/pinActive/{id_ruangan}/{pin_ruangan}', [\App\Http\Controllers\PinActivityRuanganController::class, 'pinActive']);
+Route::post('/SearchAndCreatePinActivity', [\App\Http\Controllers\RuanganTransaksiController::class, 'SearchAndCreatePinActivity']);
+Route::get('/getPesanTransaksiRuangan', [\App\Http\Controllers\RuanganTransaksiController::class, 'getPesanTransaksiRuangan']);
 
 
 Route::post('/updateRemoteTransaksiAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateRemoteTransaksiAC']);

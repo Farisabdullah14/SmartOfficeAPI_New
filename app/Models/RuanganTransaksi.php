@@ -9,6 +9,7 @@ class RuanganTransaksi extends Model
 {
     use HasFactory;
 
+   
     protected $table = 'ruangan_transaksi';
     protected $primaryKey = 'id';
 
@@ -26,6 +27,6 @@ class RuanganTransaksi extends Model
 
     public function ruangan()
     {
-        return $this->belongsTo(Ruangan::class, 'id_ruangan');
+        return $this->belongsTo(Ruangan::class, 'id_ruangan', 'id');
     }
 }

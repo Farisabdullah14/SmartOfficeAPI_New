@@ -5,6 +5,11 @@ use Illuminate\Support\Facades\DB;
 use App\Models\TransaksiLampuModel;
 use App\Models\TransaksiAcModel;
 use Carbon\Carbon;
+use App\Models\PinActivityRuangan;
+use Illuminate\Support\Facades\Validator; // Tambahkan ini
+use Illuminate\Support\Facades\Http; // Tambahkan ini
+
+
 
 use Illuminate\Http\Request;
 use App\Models\Ruangan;
@@ -243,27 +248,17 @@ class RuanganController extends Controller
 
 public function getRuanganWithTransaksi(Request $request, $userId)
 {
-    // Subquery untuk mendapatkan transaksi terbaru per id_ruangan
-    $subQuery = DB::table('ruangan_transaksi as rt1')
-                  ->select('rt1.id_ruangan', DB::raw('MAX(rt1.id) as max_id'))
-                  ->groupBy('rt1.id_ruangan');
-
-    // Mengambil data ruangan dengan transaksi terbaru berdasarkan user_id
     $ruanganData = DB::table('ruangan')
-                    ->leftJoinSub($subQuery, 'rt_sub', function($join) {
-                        $join->on('ruangan.id_ruangan', '=', 'rt_sub.id_ruangan');
-                    })
-                    ->leftJoin('ruangan_transaksi', 'rt_sub.max_id', '=', 'ruangan_transaksi.id')
-                    ->leftJoin('pin_activity_ruangan', function($join) use ($userId) {
-                        $join->on('ruangan_transaksi.id_ruangan_transaksi', '=', 'pin_activity_ruangan.id_ruangan_transaksi')
-                             ->where('pin_activity_ruangan.user_id', '=', $userId);
+                    ->leftJoin('ruangan_transaksi', function($join) {
+                        $join->on('ruangan.id_ruangan', '=', 'ruangan_transaksi.id_ruangan')
+                             ->whereRaw('ruangan_transaksi.id = (select max(id) from ruangan_transaksi where ruangan_transaksi.id_ruangan = ruangan.id_ruangan)');
                     })
                     ->select(
                         'ruangan.id_ruangan',
                         'ruangan.nama_ruangan',
                         'ruangan.status as status_ruangan',
                         'ruangan_transaksi.status as status_transaksi',
-                        'pin_activity_ruangan.user_id'
+                        'ruangan_transaksi.id_ruangan_transaksi' // tambahkan properti id_ruangan_transaksi
                     )
                     ->get();
 
@@ -276,8 +271,137 @@ public function getRuanganWithTransaksi(Request $request, $userId)
         return $item;
     });
 
-    return response()->json($ruanganData);
+    // Mengambil data dari pin_activity_ruangan
+    foreach ($ruanganData as $ruangan) {
+        $pinActivity = DB::table('pin_activity_ruangan')
+                        ->where('id_ruangan_transaksi', $ruangan->id_ruangan_transaksi ?? null)
+                        ->where('user_id', $userId)
+                        ->first();
+
+        $ruangan->user_id = $pinActivity ? $pinActivity->user_id : null;
+    }
+
+    // Mengubah format data sesuai dengan kebutuhan output
+    $formattedData = $ruanganData->map(function ($item) {
+        return [
+            'id_ruangan' => $item->id_ruangan,
+            'nama_ruangan' => $item->nama_ruangan,
+            'status_ruangan' => $item->status_ruangan,
+            'status_transaksi' => $item->status_transaksi ?: null,
+            'user_id' => $item->user_id ?: null,
+            'jumlah_perangkat' => $item->jumlah_perangkat,
+        ];
+    });
+
+    return response()->json($formattedData);
 }
+
+
+public function SearchAndCreatePinActivity(Request $request)
+{
+    // Gunakan waktu sekarang dalam format yang sama dengan waktu di database
+    $currentTime = Carbon::now()->format('Y-m-d H:i:s');
+
+    // Validasi input
+    $validator = Validator::make($request->all(), [
+        'id_pin' => 'required|string|max:255',
+        'user_id' => 'required|integer',
+        'id_ruangan' => 'required|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
+    }
+
+    $id_pin = $request->input('id_pin');
+    $user_id = $request->input('user_id');
+    $id_ruangan = $request->input('id_ruangan');
+
+    // Cari ruangan
+    $ruangan = Ruangan::find($id_ruangan);
+    if (!$ruangan || !$ruangan->door_lock_url) {
+        return response()->json(['message' => 'Ruangan tidak ditemukan atau URL door lock tidak tersedia'], 404);
+    }
+
+    // Cari ruangan transaksi terbaru berdasarkan id_ruangan dan pin_ruangan
+    $ruanganTransaksi = RuanganTransaksi::where('id_ruangan', $id_ruangan)
+                                        ->where('pin_ruangan', $id_pin)
+                                        ->orderBy('created_at', 'desc')
+                                        ->first();
+
+    if (!$ruanganTransaksi) {
+        return response()->json(['message' => 'Ruangan transaksi tidak ditemukan'], 404);
+    }
+
+    // Validasi waktu start_time dan end_time
+    if ($ruanganTransaksi->start_time > $currentTime) {
+        return response()->json(['message' => 'Waktu start belum dimulai, tidak bisa menambah data'], 400);
+    }
+
+    if ($ruanganTransaksi->end_time <= $currentTime) {
+        return response()->json(['message' => 'Waktu end sudah berlalu, tidak bisa menambah data'], 400);
+    }
+
+    // Periksa apakah user_id sudah pernah melakukan aktivitas pin di ruangan ini sebelumnya
+    $existingActivity = PinActivityRuangan::where('id_ruangan_transaksi', $ruanganTransaksi->id_ruangan_transaksi)
+                                          ->where('user_id', $user_id)
+                                          ->first();
+
+    if ($existingActivity) {
+        return response()->json(['message' => 'User ini sudah melakukan aktivitas pin di ruangan ini sebelumnya'], 400);
+    }
+
+    // Hitung jumlah pin ruangan yang sudah diaktifkan
+    $jumlah_pin = PinActivityRuangan::where('id_ruangan_transaksi', $ruanganTransaksi->id_ruangan_transaksi)->count();
+
+    // Jika jumlah pin ruangan sudah 2 kali atau lebih, kembalikan pesan error
+    if ($jumlah_pin >= 2) {
+        return response()->json(['message' => 'Maaf, pin ruangannya sudah diaktifkan lebih dari 2 kali'], 400);
+    }
+
+    // Buat record baru di tabel pin_activity_ruangan
+    $pinActivityRuangan = new PinActivityRuangan();
+    $pinActivityRuangan->id_ruangan_transaksi = $ruanganTransaksi->id_ruangan_transaksi;
+    $pinActivityRuangan->id_ruangan = $ruanganTransaksi->id_ruangan;
+    $pinActivityRuangan->start_time = $ruanganTransaksi->start_time;
+    $pinActivityRuangan->end_time = $ruanganTransaksi->end_time;
+    $pinActivityRuangan->user_id = $user_id;
+    $pinActivityRuangan->pin_ruangan = $ruanganTransaksi->pin_ruangan;
+    $pinActivityRuangan->save();
+
+    // Trigger ke hardware door lock
+    $response = Http::get("{$ruangan->door_lock_url}/API/{$id_ruangan}/On");
+
+    // Periksa respons dari door lock API
+    if ($response->failed()) {
+        return response()->json(['message' => 'Gagal mengaktifkan door lock'], 500);
+    }
+
+    return response()->json([
+        'message' => 'Pin activity ruangan berhasil ditambahkan dan door lock diaktifkan',
+        'data' => $pinActivityRuangan
+    ], 201);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -298,45 +422,49 @@ public function ambilDataDanGabungkan(Request $request, $idRuangan)
                 ->where('id_ruangan', $idRuangan)
                 ->get();
 
-    // Ambil data transaksi lampu terbaru
-    $latestTransaksiLampu = TransaksiLampuModel::where('id_ruangan', $idRuangan)
-                                                ->where('Status', 'on')
+    // Ambil data transaksi lampu terbaru berdasarkan id_lampu
+    $latestTransaksiLampu = collect([]);
+    foreach ($lampuData as $lampu) {
+        $latestTransaksi = TransaksiLampuModel::where('id_ruangan', $idRuangan)
+                                                ->where('id_lampu', $lampu->id_lampu)
                                                 ->latest()
                                                 ->first();
+        // Tambahkan ke koleksi
+        if ($latestTransaksi) {
+            $latestTransaksiLampu->push($latestTransaksi);
+        }
+    }
 
     // Ambil data transaksi AC terbaru
     $latestTransaksiAC = TransaksiAcModel::where('id_ruangan', $idRuangan)
-                                                ->where('Status', 'on')
                                                 ->latest()
                                                 ->first();
 
-    // Tambahkan id_pengguna dari transaksi lampu terbaru
-    $id_pengguna_transaksi = $latestTransaksiLampu ? $latestTransaksiLampu->id_pengguna : null;
-
-    // Tambahkan id_pengguna dari transaksi AC terbaru
-    $id_pengguna_transaksi_AC = $latestTransaksiAC ? $latestTransaksiAC->id_pengguna : null;
-
     // Tambahkan status dari lampu pada data lampu
-    $lampuData = $lampuData->map(function($lampu) use ($latestTransaksiLampu, $id_pengguna_transaksi) {
-        if ($latestTransaksiLampu && $lampu->id_lampu === $latestTransaksiLampu->id_lampu) {
-            $lampu->status = $latestTransaksiLampu->Status;
-            $lampu->id_pengguna = $id_pengguna_transaksi;
-        } else {
-            $lampu->status = 'Off';
-            $lampu->id_pengguna = null;
+    $lampuData = $lampuData->map(function($lampu) use ($latestTransaksiLampu) {
+        $lampu->status = 'Off'; // Set default status to Off
+
+        // Cek apakah ada transaksi lampu terbaru
+        if ($latestTransaksiLampu->isNotEmpty()) {
+            // Jika ada transaksi lampu terbaru dengan status On dan id_lampu yang sesuai
+            $latestTransaksi = $latestTransaksiLampu->where('id_lampu', $lampu->id_lampu)->first();
+            if ($latestTransaksi && $latestTransaksi->Status === 'On') {
+                $lampu->status = 'On';
+            }
         }
+
         return $lampu;
     });
 
     // Tambahkan status dari AC pada data AC
-    $acData = $acData->map(function($ac) use ($latestTransaksiAC, $id_pengguna_transaksi_AC) {
-        if ($latestTransaksiAC && $ac->id_AC === $latestTransaksiAC->id_AC) {
-            $ac->status = $latestTransaksiAC->Status;
-            $ac->id_pengguna = $id_pengguna_transaksi_AC;
-        } else {
-            $ac->status = 'Off';
-            $ac->id_pengguna = null;
+    $acData = $acData->map(function($ac) use ($latestTransaksiAC) {
+        $ac->status = 'Off'; // Set default status to Off
+
+        // Jika ada transaksi AC terbaru dengan status On
+        if ($latestTransaksiAC && $latestTransaksiAC->Status === 'On') {
+            $ac->status = 'On';
         }
+
         return $ac;
     });
 
@@ -346,6 +474,11 @@ public function ambilDataDanGabungkan(Request $request, $idRuangan)
     // Format data untuk respons JSON
     return response()->json($mergedData);
 }
+
+
+
+
+
 
 //     public function ambilDataDanGabungkan(Request $request, $idRuangan)
 // {

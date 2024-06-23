@@ -17,6 +17,8 @@ class LampuModel extends Model
         'watt_lampu',
         'Kode_hardware',
         'id_ruangan',
+        'keterangan', 
+        'image', 
     ];
 
 

@@ -186,6 +186,7 @@ class TransaksiLampuController extends Controller
                                 // $endpoint = "http://192.168.100.51:8383/relay/{$lamp_id}/{$status}";
 
                 // $endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}";
+                // $endpoint = "http://192.168.100.160:8181/api/on/LMP_007";
 
                 print(" adadad  ");
 
@@ -260,11 +261,10 @@ class TransaksiLampuController extends Controller
                 http://192.168.100.234:8181/relay/LMP_014/off
                 // $endpoint = "http://192.168.100.234:8181/relay/{$lamp_id}/{$status}";
                 print(" adadad  ");
-
-                // $endpoint = "http://192.168.100.51:8383/api/{$status}/{$lamp_id}";
+                // $endpoint = "http://192.168.100.160:8181/api/off/LMP_007";
                     break;
                 default:
-                    return response()->json(['message' => 'Invalid Kode_hardware'], 400);
+
             }
     
             $response = Http::get($endpoint);
