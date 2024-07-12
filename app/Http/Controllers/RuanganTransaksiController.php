@@ -262,11 +262,39 @@ public function CreateTransaksiRuangan(Request $request)
         $ruanganTransaksi->refresh();
         //$id_ruangan_transaksi = $ruanganTransaksi->id_ruangan_transaksi;
 
-        
+        $this->sendBookingNotification($user_id);
+
         return response()->json([
             'message' => 'Ruangan transaksi dan pin ruangan berhasil ditambahkan',
             'data_ruangan_transaksi' => $ruanganTransaksi,
         ], 201);
+}
+
+
+public function sendBookingNotification($user_id)
+{
+    // Ambil transaksi ruangan terbaru dengan status 'on' untuk user tertentu
+    $latestTransaction = RuanganTransaksi::where('user_id', $user_id)
+        ->where('status', 'on')
+        ->latest()
+        ->first();
+
+    if ($latestTransaction) {
+        // Persiapkan data notifikasi
+        $notificationData = [
+            'id_pengguna' => $user_id,
+            'nama_ruangan' => $latestTransaction->id_ruangan, // Sesuaikan dengan field yang sesuai
+            'pesan_ui' => "Booking ruangan sudah dipesan: " . $latestTransaction->id_ruangan
+        ];
+
+        // Kirim respons JSON dengan data notifikasi
+        $latestTransaction->refresh();
+
+        return response()->json($notificationData, 200);
+    } else {
+        // Kirim respons jika tidak ada transaksi terbaru
+        return response()->json(['message' => 'Tidak ada transaksi ruangan aktif'], 404);
+    }
 }
 
 
@@ -293,8 +321,122 @@ public function CreateTransaksiRuangan(Request $request)
 // }
 
 
+// public function getPesanTransaksiRuangan(Request $request)
+// {
+//     // Validasi input
+//     $validator = Validator::make($request->all(), [
+//         'id_user' => 'required|integer',
+//     ]);
+    
+//     if ($validator->fails()) {
+//         return response()->json($validator->errors(), 400);
+//     }
+    
+//     $id_user = $request->input('id_user');
+    
+//     // Query untuk mengambil transaksi ruangan dan melakukan join dengan tabel ruangan
+//     $transactions = DB::table('ruangan_transaksi')
+//                     ->where('ruangan_transaksi.user_id', $id_user) // Menentukan tabel untuk user_id
+//                     ->where('ruangan_transaksi.status', '!=', 'off') // Menentukan tabel untuk status
+//                     ->join('ruangan', 'ruangan_transaksi.id_ruangan', '=', 'ruangan.id_ruangan')
+//                     ->select(
+//                         'ruangan_transaksi.id_ruangan_transaksi',
+//                         DB::raw("DATE_FORMAT(ruangan_transaksi.start_time, '%H:%i:%s') as start_time"), // Format jam
+//                         DB::raw("DATE_FORMAT(ruangan_transaksi.end_time, '%H:%i:%s') as end_time"), // Format jam
+//                         'ruangan_transaksi.pin_ruangan',
+//                         'ruangan.nama_ruangan',
+//                         DB::raw("DATE_FORMAT(ruangan_transaksi.start_time, '%Y-%m-%d') as tanggal"), // Format tanggal
+//                         DB::raw("CASE 
+//                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Monday' THEN 'Senin'
+//                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Tuesday' THEN 'Selasa'
+//                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Wednesday' THEN 'Rabu'
+//                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Thursday' THEN 'Kamis'
+//                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Friday' THEN 'Jumat'
+//                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Saturday' THEN 'Sabtu'
+//                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Sunday' THEN 'Minggu'
+//                             END as hari") // Nama hari dalam Bahasa Indonesia
+//                     )
+//                     ->get();
+
+//     return response()->json($transactions, 200);
+// }
+
 public function getPesanTransaksiRuangan(Request $request)
 {
+    $validator = Validator::make($request->all(), [
+        'id_user' => 'required|integer',
+    ]);
+    
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
+    }
+    
+    $id_user = $request->input('id_user');
+    
+    $transactions = DB::table('ruangan_transaksi')
+                    ->where('ruangan_transaksi.user_id', $id_user)
+                    ->where('ruangan_transaksi.status', '!=', 'off')
+                    ->join('ruangan', 'ruangan_transaksi.id_ruangan', '=', 'ruangan.id_ruangan')
+                    ->select(
+                        'ruangan_transaksi.id_ruangan_transaksi',
+                        DB::raw("DATE_FORMAT(ruangan_transaksi.start_time, '%H:%i:%s') as start_time"),
+                        DB::raw("DATE_FORMAT(ruangan_transaksi.end_time, '%H:%i:%s') as end_time"),
+                        'ruangan_transaksi.pin_ruangan',
+                        'ruangan.nama_ruangan',
+                        DB::raw("DATE_FORMAT(ruangan_transaksi.start_time, '%Y-%m-%d') as tanggal"),
+                        DB::raw("CASE 
+                            WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Monday' THEN 'Senin'
+                            WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Tuesday' THEN 'Selasa'
+                            WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Wednesday' THEN 'Rabu'
+                            WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Thursday' THEN 'Kamis'
+                            WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Friday' THEN 'Jumat'
+                            WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Saturday' THEN 'Sabtu'
+                            WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Sunday' THEN 'Minggu'
+                            END as hari")
+                    )
+                    ->get();
+
+    $transactions_grouped = [];
+
+    foreach ($transactions as $transaction) {
+        $bulan_tahun = date('F Y', strtotime($transaction->tanggal));
+
+        if (!isset($transactions_grouped[$bulan_tahun])) {
+            $transactions_grouped[$bulan_tahun] = [];
+        }
+        
+        $transactions_grouped[$bulan_tahun][] = [
+            'id_ruangan_transaksi' => $transaction->id_ruangan_transaksi,
+            'start_time' => $transaction->start_time,
+            'end_time' => $transaction->end_time,
+            'pin_ruangan' => $transaction->pin_ruangan,
+            'nama_ruangan' => $transaction->nama_ruangan,
+            'tanggal' => $transaction->tanggal,
+            'hari' => $transaction->hari,
+            // "bulan" => $bulan_tahun
+        ];
+    }
+
+    $formatted_transactions = [];
+
+    foreach ($transactions_grouped as $bulan_tahun => $transactions) {
+        $formatted_transactions[] = [
+            'bulan' => $bulan_tahun,
+            'data' => $transactions
+        ];
+    }
+
+    return response()->json($formatted_transactions, 200);
+}
+
+
+
+
+
+
+
+
+public function getHistoryPesanTransaksiRuangan(Request $request) {
     // Validasi input
     $validator = Validator::make($request->all(), [
         'id_user' => 'required|integer',
@@ -309,7 +451,7 @@ public function getPesanTransaksiRuangan(Request $request)
     // Query untuk mengambil transaksi ruangan dan melakukan join dengan tabel ruangan
     $transactions = DB::table('ruangan_transaksi')
                     ->where('ruangan_transaksi.user_id', $id_user) // Menentukan tabel untuk user_id
-                    ->where('ruangan_transaksi.status', '!=', 'off') // Menentukan tabel untuk status
+                    ->where('ruangan_transaksi.status', '!=', 'on') // Menentukan tabel untuk status
                     ->join('ruangan', 'ruangan_transaksi.id_ruangan', '=', 'ruangan.id_ruangan')
                     ->select(
                         'ruangan_transaksi.id_ruangan_transaksi',
@@ -318,6 +460,7 @@ public function getPesanTransaksiRuangan(Request $request)
                         'ruangan_transaksi.pin_ruangan',
                         'ruangan.nama_ruangan',
                         DB::raw("DATE_FORMAT(ruangan_transaksi.start_time, '%Y-%m-%d') as tanggal"), // Format tanggal
+                        DB::raw("DATE_FORMAT(ruangan_transaksi.start_time, '%M %Y') as bulan_tahun"), // Format bulan dan tahun
                         DB::raw("CASE 
                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Monday' THEN 'Senin'
                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Tuesday' THEN 'Selasa'
@@ -328,11 +471,33 @@ public function getPesanTransaksiRuangan(Request $request)
                             WHEN DATE_FORMAT(ruangan_transaksi.start_time, '%W') = 'Sunday' THEN 'Minggu'
                             END as hari") // Nama hari dalam Bahasa Indonesia
                     )
+                    ->orderBy('ruangan_transaksi.start_time', 'desc') // Urutkan berdasarkan tanggal secara menurun
                     ->get();
 
-    return response()->json($transactions, 200);
-}
+    // Mengelompokkan hasil query berdasarkan bulan_tahun
+    $groupedTransactions = $transactions->groupBy('bulan_tahun');
 
+    // Ubah format hasil untuk JSON response
+    $formattedTransactions = [];
+    foreach ($groupedTransactions as $bulan_tahun => $items) {
+        $formattedTransactions[] = [
+            'bulan' => $bulan_tahun,
+            'data' => $items->map(function ($item) {
+                return [
+                    'id_ruangan_transaksi' => $item->id_ruangan_transaksi,
+                    'start_time' => $item->start_time,
+                    'end_time' => $item->end_time,
+                    'pin_ruangan' => $item->pin_ruangan,
+                    'nama_ruangan' => $item->nama_ruangan,
+                    'tanggal' => $item->tanggal,
+                    'hari' => $item->hari,
+                ];
+            })->toArray(),
+        ];
+    }
+
+    return response()->json($formattedTransactions, 200);
+}
 
 
 

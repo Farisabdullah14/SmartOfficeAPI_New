@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\LampuModel;
 use App\Events\LampuStatusChanged;
@@ -163,7 +164,7 @@ class TransaksiLampuController extends Controller
         }
         
         $Transaskilampu->save();
-        $status = 'on'; // Set the desired status, assuming 'on' for this example
+        $status = 'On'; // Set the desired status, assuming 'on' for this example
         event(new LampuStatusChanged($Transaskilampu->id_transaksilampu,$lamp_id, $status));
 
         switch ($kode_hardware) {
@@ -186,7 +187,7 @@ class TransaksiLampuController extends Controller
                                 // $endpoint = "http://192.168.100.51:8383/relay/{$lamp_id}/{$status}";
 
                 // $endpoint = "http://172.20.10.5:8383/api/on/{$lamp_id}";
-                // $endpoint = "http://192.168.100.160:8181/api/on/LMP_007";
+                // $endpoint = "http://192.168.100.117:8181/api/On/{$lamp_id}";
 
                 print(" adadad  ");
 
@@ -241,6 +242,7 @@ class TransaksiLampuController extends Controller
             $lampu->save();
             $lamp_id = $lampu->id_lampu;
           //  dd($lampu);
+          $jumlahTransaksi = $this->getLampuTransaksiCount($lampu->id_pengguna);
 
           event(new LampuStatusChanged($id_Transaksi_lampu,$lamp_id, $status));
         // broadcast(new LampuStatusChanged($lampu->id_transaksilampu,$lamp_id, $status))->toOthers();
@@ -261,7 +263,7 @@ class TransaksiLampuController extends Controller
                 http://192.168.100.234:8181/relay/LMP_014/off
                 // $endpoint = "http://192.168.100.234:8181/relay/{$lamp_id}/{$status}";
                 print(" adadad  ");
-                // $endpoint = "http://192.168.100.160:8181/api/off/LMP_007";
+                // $endpoint = "http://192.168.100.117:8181/api/Off/{$lamp_id}";
                     break;
                 default:
 
@@ -271,7 +273,9 @@ class TransaksiLampuController extends Controller
 
             if ($response->status() == 200) {
                 // event(new LampuStatusChanged($lamp_id, $status)); // Emit the LampuStatusChanged event
-                return response()->json(['message' => 'Updated successfully']);
+                // return response()->json(['message' => 'Updated successfully']);
+                return response()->json(['message' => 'Updated successfully', 'jumlahTransaksi' => $jumlahTransaksi]);
+
             } else {
                return response()->json(['error' => 'Failed to update'], $response->status());
             }
@@ -279,4 +283,32 @@ class TransaksiLampuController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+
+    public function getLampuTransaksiCount($id_pengguna) {
+        $today = date('Y-m-d'); // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+    
+        // Hitung jumlah transaksi lampu yang sedang aktif pada hari ini
+        $jumlahLampu = DB::table('history_transaksi_lampu')
+            ->where('id_pengguna', $id_pengguna)
+            ->where('Status', 'On')
+            ->whereDate('start_waktu', $today)
+            ->count();
+    
+        // Hitung jumlah transaksi AC yang sedang aktif pada hari ini
+        $jumlahAC = DB::table('history_transaksi_ac')
+            ->where('id_pengguna', $id_pengguna)
+            ->where('Status', 'On')
+            ->whereDate('Start_waktu', $today)
+            ->count();
+    
+        // Total jumlah transaksi
+        $total = $jumlahLampu + $jumlahAC;
+    
+        // return [
+        //     'Total_Perangkat' => $total,
+        // ];
+        return $total;
+    }
+    
 }

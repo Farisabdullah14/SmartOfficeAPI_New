@@ -8,7 +8,13 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Http\Request;
 use App\Models\LampuModel;
+use App\Models\Ruangan;
+use App\Models\HistoryTransaksiLampu;
+use App\Models\TarifListrik;
+use App\Models\PcdMasterUser;
 use App\Models\TransaksiLampuModel;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class LampuController extends Controller
 {
@@ -133,4 +139,86 @@ class LampuController extends Controller
     
         return response()->json($data);
     }
+
+
+
+
+
+    public function getLampuDetail(Request $request, $id_transaksi_lampu)
+{
+    // Ambil data transaksi lampu berdasarkan id_transaksi_lampu
+    $transaksiLampu = TransaksiLampuModel::where('id_transaksi_lampu', $id_transaksi_lampu)->first();
+
+    if (!$transaksiLampu) {
+        return response()->json(['message' => 'Transaksi lampu tidak ditemukan'], 404);
+    }
+
+    // Ambil data lampu
+    $lampu = LampuModel::where('id_lampu', $transaksiLampu->id_lampu)->first();
+
+    // Ambil data ruangan
+    $ruangan = Ruangan::where('id_ruangan', $transaksiLampu->id_ruangan)->first();
+
+    // Ambil data tarif listrik
+    $tarifListrik = TarifListrik::where('id', $transaksiLampu->id_tarif_listrik)->first();
+
+    // Ambil history transaksi lampu
+    $historyTransaksiLampuOn = HistoryTransaksiLampu::where('id_transaksi_lampu', $id_transaksi_lampu)
+        ->where('status', 'On')
+        ->first();
+
+    $historyTransaksiLampuOff = HistoryTransaksiLampu::where('id_transaksi_lampu', $id_transaksi_lampu)
+        ->where('status', 'Off')
+        ->first();
+
+    // Ambil nama pengguna
+    $userOn = $historyTransaksiLampuOn ? PcdMasterUser::where('id', $historyTransaksiLampuOn->id_pengguna)->first() : null;
+    $userOff = $historyTransaksiLampuOff ? PcdMasterUser::where('id', $historyTransaksiLampuOff->id_pengguna)->first() : null;
+
+
+    // Hitung total biaya lampu
+    $totalBiayaLampu = $transaksiLampu->Biaya_lampu;
+    // $Watt = $transaksiLampu->Watt_lampu;
+
+    // Parsing waktu dari string menjadi objek Carbon
+    $startOnWaktu = Carbon::parse($transaksiLampu->Start_waktu);
+    $startOnTime = $startOnWaktu->format('H:i:s');
+
+    $endOffWaktu = Carbon::parse($transaksiLampu->End_waktu);
+    $endOffTime = $endOffWaktu->format('H:i:s');
+
+    // Hitung Kwh yang digunakan
+    $start = Carbon::parse($transaksiLampu->Start_waktu);
+    $end = Carbon::parse($transaksiLampu->End_waktu);
+    $durationInHours = $end->diffInMinutes($start) / 60;
+
+    $watt = (float) $transaksiLampu->Watt_lampu;
+    $kilowatt = $watt / 1000;
+    $kwh = $kilowatt * $durationInHours;
+
+    // Mendapatkan nama hari dalam Bahasa Indonesia
+    $hari = $startOnWaktu->translatedFormat('l'); // 'l' menghasilkan nama hari dalam Bahasa Indonesia
+
+    $data = [
+        'id_lampu' => $lampu->id_lampu,
+        'nama_ruangan' => $ruangan->nama_ruangan,
+        'status_lampu_terbaru' => $transaksiLampu->Status,
+        'tarif_listrik' => 'Rp.' . $tarifListrik->tarif_per_kwh,
+        'user_on' => $userOn ? $userOn->name : null,
+        'user_off' => $userOff ? $userOff->name : null,
+        'total_biaya_lampu' => 'Rp.' . number_format($totalBiayaLampu, 2, ',', '.'),
+        'kwh_digunakan' => $kwh,
+        'Watt' => $watt,
+        'on_waktu' => $startOnTime,
+        'off_waktu' => $endOffTime,
+        'hari' => $hari,
+    ];
+
+    return response()->json($data);
+}
+
+    
+    
+    
+
     }

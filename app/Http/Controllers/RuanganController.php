@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use App\Models\TransaksiLampuModel;
 use App\Models\TransaksiAcModel;
+use App\Events\LampuStatusChanged;
 use Carbon\Carbon;
 use App\Models\PinActivityRuangan;
 use Illuminate\Support\Facades\Validator; // Tambahkan ini
@@ -246,21 +247,79 @@ class RuanganController extends Controller
 // }
 
 
+// public function getRuanganWithTransaksi(Request $request, $userId)
+// {
+//     $ruanganData = DB::table('ruangan')
+//                     ->leftJoin('ruangan_transaksi', function($join) {
+//                         $join->on('ruangan.id_ruangan', '=', 'ruangan_transaksi.id_ruangan')
+//                              ->whereRaw('ruangan_transaksi.id = (select max(id) from ruangan_transaksi where ruangan_transaksi.id_ruangan = ruangan.id_ruangan)');
+//                     })
+//                     ->select(
+//                         'ruangan.id_ruangan',
+//                         'ruangan.nama_ruangan',
+//                         'ruangan.status as status_ruangan',
+//                         'ruangan_transaksi.status as status_transaksi',
+//                         'ruangan_transaksi.id_ruangan_transaksi' // tambahkan properti id_ruangan_transaksi
+//                     )
+//                     ->get();
+
+//     // Menambahkan jumlah perangkat pada setiap ruangan
+//     $ruanganData = $ruanganData->map(function ($item) {
+//         $lampuCount = DB::table('lampu')->where('id_ruangan', $item->id_ruangan)->count();
+//         $acCount = DB::table('ac')->where('id_ruangan', $item->id_ruangan)->count();
+//         $item->jumlah_perangkat = $lampuCount + $acCount;
+
+//         return $item;
+//     });
+
+//     // Mengambil data dari pin_activity_ruangan
+//     foreach ($ruanganData as $ruangan) {
+//         $pinActivity = DB::table('pin_activity_ruangan')
+//                         ->where('id_ruangan_transaksi', $ruangan->id_ruangan_transaksi ?? null)
+//                         ->where('user_id', $userId)
+//                         ->first();
+
+//         $ruangan->user_id = $pinActivity ? $pinActivity->user_id : null;
+//     }
+
+//     // Mengubah format data sesuai dengan kebutuhan output
+//     $formattedData = $ruanganData->map(function ($item) {
+//         return [
+//             'id_ruangan' => $item->id_ruangan,
+//             'nama_ruangan' => $item->nama_ruangan,
+//             'status_ruangan' => $item->status_ruangan,
+//             'status_transaksi' => $item->status_transaksi ?: null,
+//             'user_id' => $item->user_id ?: null,
+//             'jumlah_perangkat' => $item->jumlah_perangkat,
+//         ];
+//     });
+
+//     return response()->json($formattedData);
+// }
+
+
+
 public function getRuanganWithTransaksi(Request $request, $userId)
 {
+    $twoHoursAgo = now()->subHours(2)->format('Y-m-d H:i:s');
+
     $ruanganData = DB::table('ruangan')
-                    ->leftJoin('ruangan_transaksi', function($join) {
+                    ->leftJoin('ruangan_transaksi', function($join) use ($twoHoursAgo) {
                         $join->on('ruangan.id_ruangan', '=', 'ruangan_transaksi.id_ruangan')
-                             ->whereRaw('ruangan_transaksi.id = (select max(id) from ruangan_transaksi where ruangan_transaksi.id_ruangan = ruangan.id_ruangan)');
+                             ->whereRaw('ruangan_transaksi.id = (select max(id) from ruangan_transaksi where ruangan_transaksi.id_ruangan = ruangan.id_ruangan and ruangan_transaksi.end_time >= ?)', [$twoHoursAgo]);
                     })
                     ->select(
                         'ruangan.id_ruangan',
                         'ruangan.nama_ruangan',
                         'ruangan.status as status_ruangan',
                         'ruangan_transaksi.status as status_transaksi',
-                        'ruangan_transaksi.id_ruangan_transaksi' // tambahkan properti id_ruangan_transaksi
+                        'ruangan_transaksi.id_ruangan_transaksi'
                     )
                     ->get();
+
+
+
+                    
 
     // Menambahkan jumlah perangkat pada setiap ruangan
     $ruanganData = $ruanganData->map(function ($item) {
@@ -295,6 +354,7 @@ public function getRuanganWithTransaksi(Request $request, $userId)
 
     return response()->json($formattedData);
 }
+
 
 
 public function SearchAndCreatePinActivity(Request $request)
@@ -382,6 +442,42 @@ public function SearchAndCreatePinActivity(Request $request)
         'data' => $pinActivityRuangan
     ], 201);
 }
+public function getJumlahRuanganDigunakanHariIni(Request $request, $userId)
+{
+    // Mendapatkan tanggal hari ini dalam format YYYY-MM-DD
+    $today = date('Y-m-d');
+
+    // Menghitung jumlah ruangan yang memiliki transaksi terkait pada hari ini dan terkait dengan user tertentu
+    $jumlahRuanganDigunakanHariIni = DB::table('ruangan')
+                                        ->leftJoin('ruangan_transaksi', 'ruangan.id_ruangan', '=', 'ruangan_transaksi.id_ruangan')
+                                        ->leftJoin('pin_activity_ruangan', 'ruangan_transaksi.id_ruangan_transaksi', '=', 'pin_activity_ruangan.id_ruangan_transaksi')
+                                        ->whereNotNull('pin_activity_ruangan.id_pin_activity_ruangan')
+                                        ->where('pin_activity_ruangan.user_id', '=', $userId)
+                                        ->whereDate('ruangan_transaksi.start_time', '=', $today)
+                                        ->orWhereDate('ruangan_transaksi.end_time', '=', $today)
+                                        ->distinct()
+                                        ->count('ruangan.id_ruangan');
+
+    // return response()->json(['jumlah_ruangan_digunakan_hari_ini' => $jumlahRuanganDigunakanHariIni]);
+    return  $jumlahRuanganDigunakanHariIni;
+}
+
+  public function cekStatusRuangan($id_ruangan)
+    {
+        $ruangan = Ruangan::where('id_ruangan', $id_ruangan)->first();
+
+        if ($ruangan) {
+            return response()->json([
+                // 'id_ruangan' => $ruangan->id_ruangan,
+                'nama_ruangan' => $ruangan->nama_ruangan,
+                'status_ruangan' => $ruangan->status,
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'Ruangan tidak ditemukan'
+            ], 404);
+        }
+    }
 
 
 
@@ -474,6 +570,7 @@ public function ambilDataDanGabungkan(Request $request, $idRuangan)
     // Format data untuk respons JSON
     return response()->json($mergedData);
 }
+
 
 
 

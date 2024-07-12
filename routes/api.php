@@ -22,7 +22,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/login', [\App\Http\Controllers\AuthController::class, 'login']);
 
+Route::post('/TransaksiLampu', [\App\Http\Controllers\TransaksiLampuController::class, 'createTransaksiLampu']);
+
+Route::get('/getLampuDetail/{id_transaksi_lampu}', [\App\Http\Controllers\LampuController::class, 'getLampuDetail']);
 Route::get('/getImageAndKeterangan/{id_lampu}', [\App\Http\Controllers\LampuController::class, 'getImageAndKeterangan']);
+// Route::get('/createTransaksiLampu', [\App\Http\Controllers\TransaksiLampuController::class, 'createTransaksiLampu']);
 Route::post('/createLampu', [\App\Http\Controllers\LampuController::class, 'createLampu']);
 Route::post('/updateLampu/{id_lampu}', [\App\Http\Controllers\LampuController::class, 'updateLampu']);
 Route::get('/getMaxIdTransaksiOnStatus', [\App\Http\Controllers\TransaksiLampuController::class, 'getPemanggilanOn']);
@@ -103,6 +107,7 @@ Route::get('/LihatTransaksiLampuMingguan/{id_pengguna}', [\App\Http\Controllers\
 Route::get('/aaa', [\App\Http\Controllers\AktivitasPengguna::class, 'aaa']);
 Route::get('/LihatTransaksiLampuDanHitungKwhPerHari/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'LihatTransaksiLampuDanHitungKwhPerHari']);
 Route::get('/hitungKwh/{id_pengguna}/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungKwh']);
+Route::get('/hitungLampu/{id_pengguna}/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungLampu']);
 Route::get('/lihatTransaksiLampuGabungan/{id_pengguna}/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'lihatTransaksiLampuGabungan']);
 Route::post('/RuanganTransaksiController/', [\App\Http\Controllers\RuanganTransaksiController::class, 'store']);
 Route::post('/PinActivityRuanganController/{id_ruangan_transaksi}', [\App\Http\Controllers\PinActivityRuanganController::class, 'store']);
@@ -113,15 +118,26 @@ Route::post('/CreateTransaksiRuangan/', [\App\Http\Controllers\RuanganTransaksiC
 Route::post('/pinActive/{id_ruangan}/{pin_ruangan}', [\App\Http\Controllers\PinActivityRuanganController::class, 'pinActive']);
 Route::post('/SearchAndCreatePinActivity', [\App\Http\Controllers\RuanganTransaksiController::class, 'SearchAndCreatePinActivity']);
 Route::get('/getPesanTransaksiRuangan', [\App\Http\Controllers\RuanganTransaksiController::class, 'getPesanTransaksiRuangan']);
+Route::get('/getHistoryPesanTransaksiRuangan', [\App\Http\Controllers\RuanganTransaksiController::class, 'getHistoryPesanTransaksiRuangan']);
+Route::get('/getJumlahRuanganDigunakanHariIni/{id_pengguna}', [\App\Http\Controllers\RuanganController::class, 'getJumlahRuanganDigunakanHariIni']);
 
+Route::get('/cekStatusRuangan/{id_ruangan}', [\App\Http\Controllers\RuanganController::class, 'cekStatusRuangan']);
+
+Route::get('/hitungKwhSemuaPengguna/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungKwhSemuaPengguna']);
+Route::get('/hitungLampuSemuaPengguna/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'hitungLampuSemuaPengguna']);
+Route::get('/lihatTransaksiLampuGabunganSemuaPengguna/{periode}', [\App\Http\Controllers\AktivitasPengguna::class, 'lihatTransaksiLampuGabunganSemuaPengguna']);
+
+
+// Route::get('/getLampuTransaksiCount/{id_pengguna}', [\App\Http\Controllers\AktivitasPengguna::class, 'getLampuTransaksiCount']);
+Route::get('/getLampuTransaksiCount/{id_pengguna}', [\App\Http\Controllers\TransaksiLampuController::class, 'getLampuTransaksiCount']);
 
 Route::post('/updateRemoteTransaksiAC/{AC_id}', [\App\Http\Controllers\TransaksiACController::class, 'updateRemoteTransaksiAC']);
+Route::post('/KunciRuangan/{id_ruangan}/{id_user}', [\App\Http\Controllers\KunciRuanganController::class, 'KunciRuangan']);
+Route::post('/getStatusKunciRuangan/{id_ruangan}', [\App\Http\Controllers\KunciRuanganController::class, 'getStatusKunciRuangan']);
+
+
+Route::post('/KunciRuanganEmergency/{id_ruangan}/{pin_ruangan}/{id_user}', [\App\Http\Controllers\KunciRuanganEmergencyController::class, 'KunciRuanganEmergency']);
 
 
 
-
-
-
-
-
-
+Route::get('/sendBookingNotification/{userId}', [\App\Http\Controllers\RuanganTransaksiController::class, 'sendBookingNotification']);
